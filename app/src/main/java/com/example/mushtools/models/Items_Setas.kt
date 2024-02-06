@@ -10,7 +10,7 @@ sealed class Items_Setas (
     object Item1 : Items_Setas(
         "Lentinula edodes / Shiitake",
         R.drawable.seta1,
-        "\"Nombre: Lentinula edodes / Shiitake \\n\\nTipo: Comestible\\n \\n La seta china o shiitake (Lentinula edodes) es una seta comestible de color marrón y aroma intenso originaria de Asia Oriental.\""
+        "Nombre: Lentinula edodes / Shiitake \n\nTipo: Comestible\n \n La seta china o shiitake (Lentinula edodes) es una seta comestible de color marrón y aroma intenso originaria de Asia Oriental."
 
     )
     object Item2 : Items_Setas(
