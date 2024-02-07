@@ -22,7 +22,7 @@ sealed class Items_Setas (
     object Item3 : Items_Setas(
         "Agaricus bisporus / Champiñon común",
         R.drawable.seta3,
-        "Nombre: Agaricus bisporus / Champiñon común\n \nTipo: Comestible\n\nEl champiñón común, champiñón de París —cuyo nombre científico es Agaricus bisporus—1\u200B es una especie de hongo basidiomiceto de la familia Agaricales nativo de Europa y América del Norte, cultivado extensamente para su uso en gastronomía. Es la especie de hongo comestible más comúnmente usada para la cocina."
+        "Nombre: Agaricus bisporus / Champiñon común\n \nTipo: Comestible\n\nEl champiñón común, champiñón de París —cuyo nombre científico es Agaricus bisporus es una especie de hongo basidiomiceto de la familia Agaricales nativo de Europa y América del Norte, cultivado extensamente para su uso en gastronomía. Es la especie de hongo comestible más comúnmente usada para la cocina."
 
     )
 }

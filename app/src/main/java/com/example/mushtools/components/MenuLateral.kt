@@ -46,7 +46,7 @@ fun MenuLateral(
 
         drawerContent = {
             ModalDrawerSheet {
-                Text("Menu Setas", modifier = Modifier.padding(16.dp))
+                Text("Menu Setas", modifier = Modifier.padding(32.dp))
                 Divider()
                 Items_menu.forEach{item->
                     NavigationDrawerItem(
@@ -65,16 +65,6 @@ fun MenuLateral(
                     )
 
                 }
-                Image(
-                    painter = painterResource(id = R.drawable.mushtool),  // Reemplaza R.drawable.tu_imagen con el ID de tu imagen
-                    contentDescription = null,
-                    modifier = Modifier
-                        .fillMaxWidth()  // Hace que la imagen ocupe el 100% del ancho del contenedor
-                        .height(200.dp)  // Ajusta la altura según tus necesidades
-                        .background(Color.White),  // Puedes agregar un fondo blanco a la imagen
-                    contentScale = ContentScale.Crop
-                )
-
             }
         }) {
         contenido()
