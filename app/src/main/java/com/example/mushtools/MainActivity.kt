@@ -1,7 +1,9 @@
 package com.example.mushtools
 
 import android.annotation.SuppressLint
+import android.content.ContentValues.TAG
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Box
@@ -38,9 +40,12 @@ import com.example.mushtools.components.MenuLateral
 import com.example.mushtools.components.PantallaPrincipal
 import com.example.mushtools.components.TopBar
 import com.example.mushtools.navegation.BancoNavigation
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -49,6 +54,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+
                     PantallaPrincipal()
                 }
             }
