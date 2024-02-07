@@ -39,35 +39,12 @@ fun Aprender() {
         modifier = Modifier
             .fillMaxSize(),
     ) {
-        val Items_Setas = listOf(
-            Item1,
-            Item2,
-            Item3,
-        )
-        LazyColumn {
-            items(Items_Setas) { seta ->
-                Box(
-                    modifier = Modifier
-                        .padding(vertical = 4.dp, horizontal = 5.dp)
-                        .background(
-                            color = Color.LightGray,
-                            shape = RoundedCornerShape(10.dp)
-                        )
-                        .clip(RoundedCornerShape(8.dp))
-                        .border(
-                            width = 1.dp,
-                            color = Color.Black,
-                            shape = RoundedCornerShape(8.dp)
-                        )
-                ) {
-                SetaItem(seta)
-                Divider(color = Color.Black, thickness = 1.dp)
-            }
-        }
+
+
+
     }
 }
 
-}
 @Composable
 fun SetaItem(seta: Items_Setas) {
     var descripcionVisible by remember { mutableStateOf(false) }
@@ -77,15 +54,7 @@ fun SetaItem(seta: Items_Setas) {
             .padding(16.dp)
             .clickable { descripcionVisible = !descripcionVisible }
     ) {
-        Image(
-            painter = painterResource(id = seta.imagen),
-            contentDescription = seta.nombre,
-            modifier = Modifier
-                .height(200.dp)
-                .fillMaxWidth()
-                .clip(shape = MaterialTheme.shapes.medium)
 
-        )
         Spacer(modifier = Modifier.height(16.dp))
         Text(text = seta.nombre, fontWeight = FontWeight.Bold, fontSize = 20.sp)
         Spacer(modifier = Modifier.height(8.dp))
