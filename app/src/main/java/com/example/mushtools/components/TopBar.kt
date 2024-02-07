@@ -19,7 +19,7 @@ fun TopBar(
 ){
     val scope = rememberCoroutineScope()
     CenterAlignedTopAppBar(
-        title = { Text(text = "MoshTools")},
+        title = { Text(text = "MushTool")},
         navigationIcon = {
             IconButton(onClick = {
                 scope.launch{
