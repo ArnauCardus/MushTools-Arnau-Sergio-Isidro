@@ -50,7 +50,7 @@ fun Aprender() {
                     modifier = Modifier
                         .padding(vertical = 4.dp, horizontal = 5.dp)
                         .background(
-                            color = Color.Gray,
+                            color = Color.LightGray,
                             shape = RoundedCornerShape(10.dp)
                         )
                         .clip(RoundedCornerShape(8.dp))
@@ -75,6 +75,7 @@ fun SetaItem(seta: Items_Setas) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
+            .clickable { descripcionVisible = !descripcionVisible }
     ) {
         Image(
             painter = painterResource(id = seta.imagen),
@@ -83,7 +84,7 @@ fun SetaItem(seta: Items_Setas) {
                 .height(200.dp)
                 .fillMaxWidth()
                 .clip(shape = MaterialTheme.shapes.medium)
-                .clickable { descripcionVisible = !descripcionVisible }
+
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(text = seta.nombre, fontWeight = FontWeight.Bold, fontSize = 20.sp)
