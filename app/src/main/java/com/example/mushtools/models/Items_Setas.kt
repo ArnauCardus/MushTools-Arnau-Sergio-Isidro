@@ -14,9 +14,9 @@ sealed class Items_Setas (
 
     )
     object Item2 : Items_Setas(
-        "Infundibulicybe geotropa / Platera ",
+            "Infundibulicybe geotropa / Platera ",
         R.drawable.seta2,
-        "Nombre: Infundibulicybe geotropa / Platera o cabeza de fraile \n \nTipo: Comestible\n\nInfundibulicybe geotropa es un hongo basidiomiceto de la familia Tricholomataceae.1\u200B Es una especie muy conocida en ciertas zonas donde se recoge para cocinarlo. Crece hasta muy avanzada la estación, noviembre y diciembre."
+        "Nombre: Infundibulicybe geotropa / Platera o cabeza de fraile \n \nTipo: Comestible\n\nInfundibulicybe geotropa es un hongo basidiomiceto de la familia Tricholomataceae , es una especie muy conocida en ciertas zonas donde se recoge para cocinarlo. Crece hasta muy avanzada la estación, noviembre y diciembre."
 
     )
     object Item3 : Items_Setas(
