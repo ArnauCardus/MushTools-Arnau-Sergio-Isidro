@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,7 +26,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.mushtools.models.Items_Setas
 import com.google.firebase.firestore.FirebaseFirestore
@@ -61,7 +59,7 @@ fun Aprender() {
                     modifier = Modifier
                         .padding(vertical = 4.dp, horizontal = 5.dp)
                         .background(
-                            color = Color.LightGray,
+                            color = MaterialTheme.colorScheme.inversePrimary,
                             shape = RoundedCornerShape(10.dp)
                         )
                         .clip(RoundedCornerShape(8.dp))

@@ -58,14 +58,23 @@ fun Quiz() {
 
         if (setasLista.isNotEmpty() && selectedSeta.value == null) {
             selectedSeta.value = setasLista.random() // Selecciona una seta aleatoria
-            options.apply {
-                clear()
-                add(selectedSeta.value!!.nombre) // Respuesta correcta
-                add(setasLista.random().nombre) // Opción incorrecta 1
-                add(setasLista.random().nombre) // Opción incorrecta 2
-                shuffle() // Mezcla las opciones
+            val correctAnswer = selectedSeta.value!!.nombre // Respuesta correcta
+
+            options.clear() // Limpiar las opciones
+            options.add(correctAnswer) // Agrega la respuesta correcta
+
+            while (options.size < 3) {
+                val randomSeta = setasLista.random().nombre // Obtén una seta aleatoria
+
+                // Asegúrate de que la opción aleatoria no sea la respuesta correcta y no esté ya en la lista de opciones
+                if (randomSeta != correctAnswer && randomSeta !in options) {
+                    options.add(randomSeta) // Agrega la opción incorrecta única
+                }
             }
+
+            options.shuffle() // Mezcla las opciones
         }
+
 
         // Mostrar la foto de la seta y las opciones en un LazyColumn
         LazyColumn(modifier = Modifier.fillMaxSize()) {
@@ -74,7 +83,7 @@ fun Quiz() {
                     modifier = Modifier
                         .padding(vertical = 4.dp, horizontal = 5.dp)
                         .background(
-                            color = Color.LightGray,
+                            color = MaterialTheme.colorScheme.inversePrimary,
                             shape = RoundedCornerShape(10.dp)
                         )
                         .clip(RoundedCornerShape(8.dp))
@@ -112,7 +121,7 @@ fun SetaQuizItem(seta: Items_Setas, options: List<String>) {
                 .fillMaxWidth()
                 .clip(shape = MaterialTheme.shapes.medium)
         )
-
+        Spacer(modifier = Modifier.height(16.dp)) // Añadir espacio entre la imagen y las opciones
         for (option in options) {
             Text(
                 text = option,
