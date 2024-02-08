@@ -27,7 +27,7 @@ fun Map() {
         MapsScreen()
     }
 }
-//hola
+
 @Composable
 fun MapsScreen() {
     val context = LocalContext.current
