@@ -57,6 +57,7 @@ dependencies {
     implementation ("androidx.camera:camera-lifecycle:1.3.0-rc01")
     implementation ("androidx.camera:camera-view:1.3.0-rc01")
 
+    implementation("org.osmdroid:osmdroid-android:6.1.14")
     implementation("io.coil-kt:coil-compose:2.5.0")
     implementation(platform("com.google.firebase:firebase-bom:32.7.1"))
     implementation("com.google.firebase:firebase-analytics")

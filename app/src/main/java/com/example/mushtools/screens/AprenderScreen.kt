@@ -61,7 +61,7 @@ fun Aprender() {
                     modifier = Modifier
                         .padding(vertical = 4.dp, horizontal = 5.dp)
                         .background(
-                            color = MaterialTheme.colorScheme.outline,
+                            color = MaterialTheme.colorScheme.inversePrimary,
                             shape = RoundedCornerShape(10.dp)
                         )
                         .clip(RoundedCornerShape(8.dp))
