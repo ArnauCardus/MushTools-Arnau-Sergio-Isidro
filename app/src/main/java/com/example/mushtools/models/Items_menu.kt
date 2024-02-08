@@ -29,7 +29,7 @@ sealed class Items_menu(
     object Item3 : Items_menu(
         Icons.Outlined.AddAPhoto,
         "Fotos",
-        NavScreen.FotosScreen.name
+        NavScreen.AnadirFotoScreen.name
 
     )
     object Item4 : Items_menu(

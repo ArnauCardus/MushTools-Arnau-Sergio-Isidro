@@ -1,6 +1,6 @@
 package com.example.mushtools.screens
-
-import androidx.compose.foundation.Image
+import android.content.ContentValues
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -19,38 +19,49 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.modifier.modifierLocalConsumer
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.mushtools.models.Items_Setas.*
+import coil.compose.AsyncImage
 import com.example.mushtools.models.Items_Setas
+import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
 fun Aprender() {
+    val db = FirebaseFirestore.getInstance()
     Column(
         modifier = Modifier
             .fillMaxSize(),
     ) {
-        val Items_Setas = listOf(
-            Item1,
-            Item2,
-            Item3,
-        )
-        LazyColumn {
-            items(Items_Setas) { seta ->
+
+
+        val Setaslista = remember { mutableStateListOf<Items_Setas>() }
+
+        db.collection("Setas").get().addOnSuccessListener { result ->
+            for (document in result) {
+                val seta: Items_Setas = document.toObject(Items_Setas::class.java)
+                Setaslista.add(seta)
+                Log.d("Setas", "$seta")
+            }
+        }
+            .addOnFailureListener { exception ->
+                Log.d(ContentValues.TAG, "Error getting documents: ", exception)
+            }
+
+        // Mostrar las setas en un LazyColumn
+        LazyColumn(modifier = Modifier.fillMaxSize()) {
+            items(Setaslista) { seta ->
                 Box(
                     modifier = Modifier
                         .padding(vertical = 4.dp, horizontal = 5.dp)
                         .background(
-                            color = Color.Gray,
+                            color = MaterialTheme.colorScheme.inversePrimary,
                             shape = RoundedCornerShape(10.dp)
                         )
                         .clip(RoundedCornerShape(8.dp))
@@ -59,14 +70,13 @@ fun Aprender() {
                             color = Color.Black,
                             shape = RoundedCornerShape(8.dp)
                         )
-                ) {
-                SetaItem(seta)
-                Divider(color = Color.Black, thickness = 1.dp)
+                )
+                { SetaItem(seta)}
+
+                // Aquí puedes mostrar otros atributos de la seta
             }
         }
     }
-}
-
 }
 @Composable
 fun SetaItem(seta: Items_Setas) {
@@ -76,8 +86,8 @@ fun SetaItem(seta: Items_Setas) {
             .fillMaxWidth()
             .padding(16.dp)
     ) {
-        Image(
-            painter = painterResource(id = seta.imagen),
+        AsyncImage(
+            model = seta.foto,
             contentDescription = seta.nombre,
             modifier = Modifier
                 .height(200.dp)
@@ -86,10 +96,17 @@ fun SetaItem(seta: Items_Setas) {
                 .clickable { descripcionVisible = !descripcionVisible }
         )
         Spacer(modifier = Modifier.height(16.dp))
-        Text(text = seta.nombre, fontWeight = FontWeight.Bold, fontSize = 20.sp)
-        Spacer(modifier = Modifier.height(8.dp))
+
+
         if (descripcionVisible) {
-            Text(text = seta.descripcion, fontSize = 16.sp)
+            Text(text = "Nombre : " + seta.nombre)
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(text = "Nombre Cientifico : " +seta.nombrecient)
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(text = "Tipo : "+seta.tipo)
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(text = seta.descripcion)
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }

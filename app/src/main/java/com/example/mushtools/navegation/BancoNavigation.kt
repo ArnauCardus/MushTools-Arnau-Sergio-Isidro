@@ -1,9 +1,11 @@
 package com.example.mushtools.navegation
 
 import androidx.compose.runtime.Composable
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.mushtools.screens.AnadirFoto
 import com.example.mushtools.screens.Aprender
 import com.example.mushtools.screens.Fotos
 import com.example.mushtools.screens.Map
@@ -32,6 +34,9 @@ fun BancoNavigation(
         }
         composable(NavScreen.QuizScreen.name){
             Quiz()
+        }
+        composable(NavScreen.AnadirFotoScreen.name){
+            AnadirFoto(navController)
         }
     }
 }
