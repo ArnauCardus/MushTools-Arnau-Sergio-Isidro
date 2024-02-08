@@ -1,4 +1,6 @@
 package com.example.mushtools.screens
+
+
 import android.content.ContentValues
 import android.util.Log
 import androidx.compose.foundation.background
@@ -12,9 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,12 +27,112 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.mushtools.models.Items_Setas
 import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
 fun Quiz() {
-    Text(text = "Quiz")
+    val db = FirebaseFirestore.getInstance()
+    Column(
+        modifier = Modifier
+            .fillMaxSize(),
+    ) {
+
+        val setasLista = remember { mutableStateListOf<Items_Setas>() }
+
+        db.collection("Setas").get().addOnSuccessListener { result ->
+            for (document in result) {
+                val seta: Items_Setas = document.toObject(Items_Setas::class.java)
+                setasLista.add(seta)
+                Log.d("Setas", "$seta")
+            }
+        }
+            .addOnFailureListener { exception ->
+                Log.d(ContentValues.TAG, "Error getting documents: ", exception)
+            }
+
+        val selectedSeta = remember { mutableStateOf<Items_Setas?>(null) }
+
+        val options = remember { mutableStateListOf<String>() }
+
+        if (setasLista.isNotEmpty() && selectedSeta.value == null) {
+            selectedSeta.value = setasLista.random() // Selecciona una seta aleatoria
+            options.apply {
+                clear()
+                add(selectedSeta.value!!.nombre) // Respuesta correcta
+                add(setasLista.random().nombre) // Opción incorrecta 1
+                add(setasLista.random().nombre) // Opción incorrecta 2
+                shuffle() // Mezcla las opciones
+            }
+        }
+
+        // Mostrar la foto de la seta y las opciones en un LazyColumn
+        LazyColumn(modifier = Modifier.fillMaxSize()) {
+            item {
+                Box(
+                    modifier = Modifier
+                        .padding(vertical = 4.dp, horizontal = 5.dp)
+                        .background(
+                            color = Color.LightGray,
+                            shape = RoundedCornerShape(10.dp)
+                        )
+                        .clip(RoundedCornerShape(8.dp))
+                        .border(
+                            width = 1.dp,
+                            color = Color.Black,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                ) {
+                    selectedSeta.value?.let { SetaQuizItem(it, options) }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun SetaQuizItem(seta: Items_Setas, options: List<String>) {
+    var selectedAnswer by remember { mutableStateOf<String?>(null) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        Text(
+            text = "¿Qué seta es esta?",
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+        AsyncImage(
+            model = seta.foto,
+            contentDescription = seta.nombre,
+            modifier = Modifier
+                .height(200.dp)
+                .fillMaxWidth()
+                .clip(shape = MaterialTheme.shapes.medium)
+        )
+
+        for (option in options) {
+            Text(
+                text = option,
+
+                modifier = Modifier
+                    .clickable {
+                        selectedAnswer = option
+                    }
+                    .padding(bottom = 8.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        if (selectedAnswer != null) {
+            if (selectedAnswer == seta.nombre) {
+                Text(text = "¡Respuesta correcta!", color = Color.Green)
+            } else {
+                Text(text = "Respuesta incorrecta. La respuesta correcta es: ${seta.nombre}", color = Color.Red)
+            }
+        }
+    }
 }
