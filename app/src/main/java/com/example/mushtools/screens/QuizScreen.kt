@@ -98,19 +98,20 @@ fun Quiz() {
                         SetaQuizItem(
                             seta,
                             options,
-                            { // Play Again Lambda
-                                selectedSeta.value = null // Reset selected seta
-                                correctAnswersCount = 0 // Reset correct answers count
+                            {
+                                selectedSeta.value = null // Reinicia  seta
+                                correctAnswersCount = 0 // Reinicia respuestas correctas
                                 selectedAnswersState.clear() // Reiniciar el estado de los colores de los botones seleccionados
                             },
-                            { // On Correct Answer Lambda
+                            {
                                 correctAnswersCount++
                             },
-                            { // On Incorrect Answer Lambda
+                            {
                                 correctAnswersCount = 0 // Reset correct answers count
                             },
                             correctAnswersCount,
                             onNextQuestion = {
+
                                 selectedSeta.value = setasLista.random()
                                 val correctAnswer = selectedSeta.value!!.nombre
 
@@ -156,6 +157,7 @@ fun SetaQuizItem(
     onButtonStateSelected: (String, Color) -> Unit // Callback para actualizar el estado del botón seleccionado
 ) {
     var selectedOption by remember { mutableStateOf<String?>(null) }
+    var selectedButtonColor by remember { mutableStateOf<Color?>(null) }
 
     Column(
         modifier = Modifier
@@ -180,13 +182,16 @@ fun SetaQuizItem(
                 onClick = {
                     if (option == seta.nombre) {
                         onCorrectAnswer()
+                        selectedButtonColor = Color.Green
                     } else {
                         onIncorrectAnswer()
+                        selectedButtonColor = Color.Red
                     }
                     selectedOption = option // Actualizar la opción seleccionada
-                    onButtonStateSelected(option, if (option == seta.nombre) Color.Green else Color.Red)
+                    onButtonStateSelected(option, selectedButtonColor!!)
                     MainScope().launch {
                         delay(1000) // Esperar 1 segundo
+                        selectedButtonColor = null // Restablecer el color del botón
                         onNextQuestion() // Avanzar a la próxima pregunta después del retraso
                     }
                 },
@@ -195,10 +200,11 @@ fun SetaQuizItem(
                     .padding(bottom = 8.dp)
                     .background(
                         color = when {
-                            option == selectedButtonState?.first -> selectedButtonState.second ?: Color.Transparent
+                            option == selectedButtonState?.first || option == selectedOption -> selectedButtonColor ?: Color.Transparent
                             else -> Color.Transparent
                         }
                     )
+
             ) {
                 Text(text = option)
             }
@@ -211,4 +217,3 @@ fun SetaQuizItem(
         )
     }
 }
-
