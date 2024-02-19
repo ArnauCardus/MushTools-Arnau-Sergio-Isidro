@@ -14,11 +14,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.mushtools.models.Items_MisSetas
 import com.example.mushtools.navegation.NavScreen
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
-fun AnadirFoto(navController: NavController){
+fun AnadirFoto(navController: NavController, ImageURL : String){
+    var seta by remember { mutableStateOf(Items_MisSetas(ImageURL,"",0))}
     var comentario by remember { mutableStateOf("") }
     Column(
         modifier = Modifier
@@ -36,7 +39,9 @@ fun AnadirFoto(navController: NavController){
         }
         OutlinedTextField (
             value = comentario,
-            onValueChange = { comentario = it },
+            onValueChange = { comentario = it
+                seta = seta.copy(comentario = it)
+                            },
             label = {
                 Text("Comentario")
             },
@@ -46,11 +51,26 @@ fun AnadirFoto(navController: NavController){
             singleLine = true
         )
         ElevatedButton(
-            onClick = { navController.navigate(route = NavScreen.FotosScreen.name) },
+            onClick = { agregarUsuario(seta)
+                navController.navigate(route = NavScreen.MisSetasScreen.name)
+                      },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Guardar ")
         }
     }
+
 }
+fun agregarUsuario(seta : Items_MisSetas) {
+    val db = FirebaseFirestore.getInstance()
+    db.collection("MisSetas")
+        .add(seta)
+        .addOnSuccessListener { documentReference ->
+            println("Usuario agregado con ID: ${documentReference.id}")
+        }
+        .addOnFailureListener { e ->
+            println("Error al agregar usuario: $e")
+        }
+}
+
 

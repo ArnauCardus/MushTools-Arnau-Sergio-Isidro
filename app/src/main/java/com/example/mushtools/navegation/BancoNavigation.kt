@@ -24,7 +24,7 @@ fun BancoNavigation(
             Aprender()
         }
         composable(NavScreen.FotosScreen.name){
-            Fotos()
+            Fotos(navController)
         }
         composable(NavScreen.MapScreen.name){
             Map()
@@ -36,7 +36,7 @@ fun BancoNavigation(
             Quiz()
         }
         composable(NavScreen.AnadirFotoScreen.name){
-            AnadirFoto(navController)
+            AnadirFoto(navController, ImageURL = "")
         }
     }
 }
