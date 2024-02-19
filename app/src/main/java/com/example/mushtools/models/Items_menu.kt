@@ -5,6 +5,7 @@ import androidx.compose.material.icons.outlined.AddAPhoto
 import androidx.compose.material.icons.outlined.AddLocation
 import androidx.compose.material.icons.outlined.Album
 import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Forum
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.mushtools.navegation.NavScreen
@@ -42,6 +43,13 @@ sealed class Items_menu(
         Icons.Outlined.CheckCircle,
         "Quiz",
         NavScreen.QuizScreen.name
+
+    )
+
+    object Item6 : Items_menu(
+        Icons.Outlined.Forum,
+        "Forum",
+        NavScreen.ForumScreen.name
 
     )
 }

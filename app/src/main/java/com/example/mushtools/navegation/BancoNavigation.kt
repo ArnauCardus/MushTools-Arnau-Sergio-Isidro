@@ -5,10 +5,12 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.mushtools.screens.Aprender
+import com.example.mushtools.screens.Forum
 import com.example.mushtools.screens.Fotos
 import com.example.mushtools.screens.Map
 import com.example.mushtools.screens.MisSetas
 import com.example.mushtools.screens.Quiz
+import com.example.mushtools.screens.Scoreboard
 
 
 @Composable
@@ -32,7 +34,13 @@ fun BancoNavigation(
             MisSetas()
         }
         composable(NavScreen.QuizScreen.name){
-            Quiz()
+            Quiz(navController)
+        }
+        composable(NavScreen.ForumScreen.name){
+            Forum()
+        }
+        composable(NavScreen.ScoreboardScreen.name){
+            Scoreboard()
         }
     }
 }

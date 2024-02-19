@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,7 +14,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Scoreboard
 import androidx.compose.material3.Button
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,24 +28,29 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.mushtools.models.Items_Setas
+import com.example.mushtools.models.Scoreboard
+import com.example.mushtools.navegation.NavScreen
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun Quiz() {
+fun Quiz(navController: NavController) {
     // Aquí se mantiene un mapa de preguntas y sus colores de botones seleccionados
     val selectedAnswersState = remember { mutableMapOf<Items_Setas, Pair<String?, Color?>>() }
     val db = FirebaseFirestore.getInstance()
     var correctAnswersCount by remember { mutableStateOf(0) }
     var lastSelectedSeta by remember { mutableStateOf<Items_Setas?>(null) }
+    var score by remember { mutableStateOf(Scoreboard(0,""))}
 
 
     Column(
@@ -48,7 +58,6 @@ fun Quiz() {
     ) {
         val setasLista by remember { mutableStateOf(mutableListOf<Items_Setas>()) }
         val selectedSeta = remember { mutableStateOf<Items_Setas?>(null) }
-
         val options = remember { mutableStateListOf<String>() }
 
         LaunchedEffect(Unit) {
@@ -107,7 +116,9 @@ fun Quiz() {
                                 correctAnswersCount++
                             },
                             {
-                                correctAnswersCount = 0 // Reset correct answers count
+                                score=score.copy(score=correctAnswersCount)
+                                GuardarScore(score)
+                                correctAnswersCount = 0 // Reiniciar Respuestas Correctas a 0
                             },
                             correctAnswersCount,
                             onNextQuestion = {
@@ -136,14 +147,21 @@ fun Quiz() {
                         ) { text, color ->
                             // Actualizar el estado del botón seleccionado
                             selectedAnswersState[seta] = text to color
+
                         }
+
+                    }
+                }
+                FloatingActionButton(onClick = { navController.navigate(route = NavScreen.ScoreboardScreen.name) }) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Filled.Scoreboard, "Scoreboard" )
+                        Text(text = " Scoreboard")
                     }
                 }
             }
         }
     }
 }
-
 @Composable
 fun SetaQuizItem(
     seta: Items_Setas,
@@ -200,13 +218,16 @@ fun SetaQuizItem(
                     .padding(bottom = 8.dp)
                     .background(
                         color = when {
-                            option == selectedButtonState?.first || option == selectedOption -> selectedButtonColor ?: Color.Transparent
+                            option == selectedButtonState?.first || option == selectedOption -> selectedButtonColor
+                                ?: Color.Transparent
+
                             else -> Color.Transparent
                         }
                     )
 
             ) {
                 Text(text = option)
+
             }
         }
 
@@ -215,5 +236,14 @@ fun SetaQuizItem(
         Text(
             text = "Respuestas correctas: $correctAnswersCount",
         )
+
     }
+}
+
+
+fun GuardarScore (score:Scoreboard){
+    val db = FirebaseFirestore.getInstance()
+    db.collection("Scoreboard")
+        .add(score)
+
 }

@@ -5,5 +5,7 @@ enum class NavScreen {
     MisSetasScreen,
     MapScreen,
     FotosScreen,
-    QuizScreen
+    QuizScreen,
+    ForumScreen,
+    ScoreboardScreen
 }
