@@ -85,6 +85,9 @@ fun MapViewContainer(
     AndroidView(modifier = modifier, factory = { mapView })
 }
 
+private var currentLatitude: Double? = null
+private var currentLongitude: Double? = null
+
 private fun addMarkerAtCurrentLocation(mapView: MapView, context: Context) {
     val myLocationOverlay = MyLocationNewOverlay(GpsMyLocationProvider(context), mapView)
     myLocationOverlay.enableMyLocation()
@@ -94,15 +97,19 @@ private fun addMarkerAtCurrentLocation(mapView: MapView, context: Context) {
     myLocationOverlay.runOnFirstFix {
         val currentLocation = myLocationOverlay.myLocation
         if (currentLocation != null) {
+            currentLatitude = currentLocation.latitude
+            currentLongitude = currentLocation.longitude
             val marker = Marker(mapView)
             marker.position = GeoPoint(currentLocation.latitude, currentLocation.longitude)
             marker.title = "Mi ubicación"
             mapView.overlays.add(marker)
         }
     }
-}private suspend fun addMarkersForRestaurantes(mapView: MapView, restaurantesList: List<Restaurantes>) {
+}
+
+private suspend fun addMarkersForRestaurantes(mapView: MapView, restaurantesList: List<Restaurantes>) {
     withContext(Dispatchers.Main) {
-        for (restaurante in restaurantesList) {
+        restaurantesList.forEach { restaurante ->
             val latitude = restaurante.latitude.toDoubleOrNull()
             val longitude = restaurante.longitude.toDoubleOrNull()
             if (latitude != null && longitude != null) {
@@ -114,3 +121,4 @@ private fun addMarkerAtCurrentLocation(mapView: MapView, context: Context) {
         }
     }
 }
+
