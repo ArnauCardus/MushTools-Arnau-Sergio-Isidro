@@ -1,93 +1,124 @@
 package com.example.mushtools.screens
 
-import android.util.Log
+import android.Manifest
+import android.content.Context
 import androidx.activity.ComponentActivity
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.LifecycleOwner
 import com.example.mushtools.R
+import com.example.mushtools.models.Restaurantes
+import com.example.mushtools.models.RestaurantesRepository
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.osmdroid.config.Configuration
-import org.osmdroid.events.MapListener
-import org.osmdroid.events.ScrollEvent
-import org.osmdroid.events.ZoomEvent
+import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
+import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun Map() {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-    ) {
-        MapsScreen()
+    val permissionState = rememberPermissionState(permission = Manifest.permission.ACCESS_FINE_LOCATION)
+    val context = LocalContext.current
+    val lifecycle = LocalLifecycleOwner.current
+
+    LaunchedEffect(Unit) {
+        permissionState.launchPermissionRequest()
+    }
+
+    if (permissionState.status.isGranted) {
+        MapViewContainer(context, lifecycle, modifier = Modifier.fillMaxSize())
+    } else {
+        Text("La localización es necesaria para poder utilizar el mapa")
     }
 }
 
 @Composable
-fun MapsScreen() {
-    val context = LocalContext.current
+fun MapViewContainer(
+    context: Context,
+    lifecycle: LifecycleOwner,
+    modifier: Modifier = Modifier
+) {
+    // Load OpenStreetMap configuration
     Configuration.getInstance().load(
         context,
-        context.getSharedPreferences(context.getString(R.string.app_name),
+        context.getSharedPreferences(
+            context.getString(R.string.app_name),
             ComponentActivity.MODE_PRIVATE
         )
     )
 
-    val mapView = rememberMapViewWithLifecycle()
 
-    LaunchedEffect(mapView) {
-        val myLocationOverlay = MyLocationNewOverlay(GpsMyLocationProvider(context), mapView)
-        val controller = mapView.controller
-        myLocationOverlay.enableMyLocation()
-        myLocationOverlay.enableFollowLocation()
-        myLocationOverlay.isDrawAccuracyEnabled = true
-        myLocationOverlay.runOnFirstFix {
-            controller.setCenter(myLocationOverlay.myLocation)
-            controller.animateTo(myLocationOverlay.myLocation)
+    val mapView = MapView(context).apply {
+        setMultiTouchControls(true)
+    }
+
+
+
+    // Bind MapView to the lifecycle
+    mapView.controller.setZoom(6.0)
+
+    LaunchedEffect(Unit) {
+        // Add marker at current location
+        addMarkerAtCurrentLocation(mapView, context)
+
+        // Get restaurant data from Firestore
+        val restaurantesRepository = RestaurantesRepository()
+        val restaurantesList = restaurantesRepository.getRestaurantes()
+
+        // Add markers for each restaurant
+        addMarkersForRestaurantes(mapView, restaurantesList)
+    }
+
+    AndroidView(modifier = modifier, factory = { mapView })
+}
+
+private var currentLatitude: Double? = null
+private var currentLongitude: Double? = null
+
+private fun addMarkerAtCurrentLocation(mapView: MapView, context: Context) {
+    val myLocationOverlay = MyLocationNewOverlay(GpsMyLocationProvider(context), mapView)
+    myLocationOverlay.enableMyLocation()
+
+    mapView.overlays.add(myLocationOverlay)
+
+    myLocationOverlay.runOnFirstFix {
+        val currentLocation = myLocationOverlay.myLocation
+        if (currentLocation != null) {
+            currentLatitude = currentLocation.latitude
+            currentLongitude = currentLocation.longitude
+            val marker = Marker(mapView)
+            marker.position = GeoPoint(currentLocation.latitude, currentLocation.longitude)
+            marker.title = "Mi ubicación"
+            mapView.overlays.add(marker)
         }
-        controller.setZoom(6.0)
-        mapView.overlays.add(myLocationOverlay)
-        mapView.addMapListener(MapListenerImpl())
     }
-
-    MapViewContainer(mapView)
 }
 
-@Composable
-fun MapViewContainer(mapView: MapView) {
-    AndroidView(
-        modifier = Modifier.fillMaxSize(),
-        factory = { mapView }
-    )
-}
-
-class MapListenerImpl : MapListener {
-    override fun onScroll(event: ScrollEvent?): Boolean {
-        event?.source?.let {
-            val latitude = it.mapCenter.latitude
-            val longitude = it.mapCenter.longitude
-            Log.e("TAG", "onScroll: Latitude: $latitude, Longitude: $longitude")
+private suspend fun addMarkersForRestaurantes(mapView: MapView, restaurantesList: List<Restaurantes>) {
+    withContext(Dispatchers.Main) {
+        restaurantesList.forEach { restaurante ->
+            val latitude = restaurante.latitude.toDoubleOrNull()
+            val longitude = restaurante.longitude.toDoubleOrNull()
+            if (latitude != null && longitude != null) {
+                val marker = Marker(mapView)
+                marker.position = GeoPoint(latitude, longitude)
+                marker.title = restaurante.nombre
+                mapView.overlays.add(marker)
+            }
         }
-        return true
-    }
-
-    override fun onZoom(event: ZoomEvent?): Boolean {
-        Log.e("TAG", "onZoom: Zoom level: ${event?.zoomLevel}, Source: ${event?.source}")
-        return false
     }
 }
 
-@Composable
-fun rememberMapViewWithLifecycle(): MapView {
-    val context = LocalContext.current
-    val mapView = remember {
-        MapView(context)
-    }
-
-    return mapView
-}

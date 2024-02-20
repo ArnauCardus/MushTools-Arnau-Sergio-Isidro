@@ -1,7 +1,6 @@
 package com.example.mushtools.navegation
 
 import androidx.compose.runtime.Composable
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -42,6 +41,7 @@ fun BancoNavigation(
         composable(NavScreen.AnadirFotoScreen.name){
             AnadirFoto(navController, rutaImagen = foto)
         }
+
     }
 }
 
