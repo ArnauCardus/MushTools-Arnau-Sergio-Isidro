@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.example.mushtools.FireBase.obtenerUrlDeImagen
 import com.example.mushtools.models.Items_Setas
 import com.example.mushtools.models.Scoreboard
 import com.example.mushtools.navegation.NavScreen
@@ -173,10 +174,15 @@ fun SetaQuizItem(
     onNextQuestion: () -> Unit,
     selectedButtonState: Pair<String?, Color?>?, // Estado del botón seleccionado para la pregunta actual
     onButtonStateSelected: (String, Color) -> Unit // Callback para actualizar el estado del botón seleccionado
+
 ) {
     var selectedOption by remember { mutableStateOf<String?>(null) }
     var selectedButtonColor by remember { mutableStateOf<Color?>(null) }
-
+    var imageUrl by remember { mutableStateOf<String?>(null) }
+    obtenerUrlDeImagen(seta.foto,
+        onSuccess = { imageUrlFromFunction ->
+            imageUrl = imageUrlFromFunction
+        })
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -187,7 +193,7 @@ fun SetaQuizItem(
             modifier = Modifier.padding(bottom = 16.dp)
         )
         AsyncImage(
-            model = seta.foto,
+            model = imageUrl,
             contentDescription = seta.nombre,
             modifier = Modifier
                 .height(200.dp)
