@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.example.mushtools.FireBase.obtenerUrlDeImagen
 import com.example.mushtools.models.Items_Setas
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -81,13 +82,19 @@ fun Aprender() {
 @Composable
 fun SetaItem(seta: Items_Setas) {
     var descripcionVisible by remember { mutableStateOf(false) }
+    var imageUrl by remember { mutableStateOf<String?>(null) }
+    obtenerUrlDeImagen(seta.foto,
+        onSuccess = { imageUrlFromFunction ->
+            imageUrl = imageUrlFromFunction
+        }
+    )
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
     ) {
         AsyncImage(
-            model = seta.foto,
+            model = imageUrl,
             contentDescription = seta.nombre,
             modifier = Modifier
                 .height(200.dp)

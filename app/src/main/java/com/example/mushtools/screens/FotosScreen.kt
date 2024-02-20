@@ -1,6 +1,9 @@
 package com.example.mushtools.screens
 
 import android.Manifest
+import android.content.Context
+import android.net.Uri
+import android.util.Log
 import android.view.ViewGroup
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
@@ -9,30 +12,50 @@ import androidx.camera.view.PreviewView
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.outlined.Menu
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
+import androidx.navigation.NavController
+import com.example.mushtools.navegation.NavScreen
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
+import com.google.firebase.storage.FirebaseStorage
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import java.io.File
+import java.util.UUID
 import java.util.concurrent.Executor
+import kotlin.coroutines.resume
 
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun Fotos(){
+fun Fotos(
+          onOk: (String) -> Unit,
+){
     val permissionState = rememberPermissionState(permission = Manifest.permission.CAMERA)
-
+    val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val cameraController = remember {
         LifecycleCameraController(context)
@@ -42,14 +65,25 @@ fun Fotos(){
     LaunchedEffect(Unit) {
         permissionState.launchPermissionRequest()
     }
-    Scaffold(modifier = Modifier.fillMaxSize(), floatingActionButton = {
-        FloatingActionButton(onClick = {
-            val executor = ContextCompat.getMainExecutor(context)
-            takePicture(cameraController, executor)
-        }) {
-            Text(text = "Camara!")
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = {
+                    val executor = ContextCompat.getMainExecutor(context)
+                    scope.launch {
+                        val fotoUri = takePicture(cameraController, executor)
+                        fotoUri?.let {
+                            guardarFotoEnFirebaseStorage(context, it, onOk = {onOk (it)})
+                        }
+                    }
+                }
+            ) {
+                Icon(Icons.Filled.CameraAlt, contentDescription = "Camara")
+            }
         }
-    }) {
+
+    ) {
         if (permissionState.status.isGranted) {
             CamaraComposable(cameraController, lifecycle, modifier = Modifier.padding(it))
         } else {
@@ -58,24 +92,26 @@ fun Fotos(){
     }
 }
 
-private fun takePicture(cameraController: LifecycleCameraController, executor: Executor) {
+private suspend fun takePicture(cameraController: LifecycleCameraController, executor: Executor): Uri? {
     val file = File.createTempFile("imagentest", ".jpg")
     val outputDirectory = ImageCapture.OutputFileOptions.Builder(file).build()
-    cameraController.takePicture(
-        outputDirectory,
-        executor,
-        object : ImageCapture.OnImageSavedCallback {
-            override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-                val savedFile = File(outputFileResults.savedUri?.path ?: "")
-                println("Imagen guardada en: ${savedFile.absolutePath}")
-                println(outputFileResults.savedUri)
-            }
 
-            override fun onError(exception: ImageCaptureException) {
-                println()
-            }
-        },
-    )
+    return suspendCancellableCoroutine { continuation ->
+        cameraController.takePicture(outputDirectory, executor,
+            object : ImageCapture.OnImageSavedCallback {
+                override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
+                    val savedFile = File(outputFileResults.savedUri?.path ?: "")
+                    println("Imagen guardada en: ${savedFile.absolutePath}")
+                    println(outputFileResults.savedUri)
+                    continuation.resume(outputFileResults.savedUri ?:  null)
+                }
+
+                override fun onError(exception: ImageCaptureException) {
+                    println("Error al capturar la imagen: $exception")
+                    continuation.resume(null,)
+                }
+            })
+    }
 }
 
 @Composable
@@ -97,3 +133,21 @@ fun CamaraComposable(
         previewView
     })
 }
+fun guardarFotoEnFirebaseStorage(context: Context, fotoUri: Uri, onOk: (String) -> Unit){
+    val storage = FirebaseStorage.getInstance()
+    val storageRef = storage.reference
+    val nombreImagen = "${UUID.randomUUID()}.jpg"
+    val rutaImagen =  "fotos/$nombreImagen"
+    val imageRef = storageRef.child(rutaImagen)
+    val inputStream = context.contentResolver.openInputStream(fotoUri)
+    val bytes = inputStream?.readBytes()
+
+    bytes?.let {
+        imageRef.putBytes(it)
+            .addOnSuccessListener {
+                    onOk (rutaImagen)
+                }
+                println("Foto guardada exitosamente en Firebase Storage.")
+            }
+    }
+
