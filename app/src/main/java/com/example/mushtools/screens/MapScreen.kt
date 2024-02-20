@@ -60,7 +60,7 @@ fun MapViewContainer(
         )
     )
 
-    // Create MapView
+
     val mapView = MapView(context).apply {
         setMultiTouchControls(true)
     }
