@@ -24,6 +24,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -38,6 +40,7 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.firebase.storage.FirebaseStorage
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import java.io.File
@@ -48,7 +51,9 @@ import kotlin.coroutines.resume
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun Fotos(navController: NavController){
+fun Fotos(
+          onOk: (String) -> Unit,
+){
     val permissionState = rememberPermissionState(permission = Manifest.permission.CAMERA)
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -69,7 +74,7 @@ fun Fotos(navController: NavController){
                     scope.launch {
                         val fotoUri = takePicture(cameraController, executor)
                         fotoUri?.let {
-                            guardarFotoEnFirebaseStorage(context, it)
+                            guardarFotoEnFirebaseStorage(context, it, onOk = {onOk (it)})
                         }
                     }
                 }
@@ -77,6 +82,7 @@ fun Fotos(navController: NavController){
                 Icon(Icons.Filled.CameraAlt, contentDescription = "Camara")
             }
         }
+
     ) {
         if (permissionState.status.isGranted) {
             CamaraComposable(cameraController, lifecycle, modifier = Modifier.padding(it))
@@ -127,25 +133,21 @@ fun CamaraComposable(
         previewView
     })
 }
-fun guardarFotoEnFirebaseStorage(context: Context, fotoUri: Uri) {
+fun guardarFotoEnFirebaseStorage(context: Context, fotoUri: Uri, onOk: (String) -> Unit){
     val storage = FirebaseStorage.getInstance()
     val storageRef = storage.reference
-    val imageRef = storageRef.child("fotos/${UUID.randomUUID()}.jpg")
-
+    val nombreImagen = "${UUID.randomUUID()}.jpg"
+    val rutaImagen =  "fotos/$nombreImagen"
+    val imageRef = storageRef.child(rutaImagen)
     val inputStream = context.contentResolver.openInputStream(fotoUri)
     val bytes = inputStream?.readBytes()
 
     bytes?.let {
         imageRef.putBytes(it)
-            .addOnSuccessListener {taskSnapshot ->
-                taskSnapshot.storage.downloadUrl.addOnSuccessListener { uri ->
-                    val imageUrl = uri.toString()
-                    Log.d("FirebaseStorage", "URL de la imagen: $imageUrl")
+            .addOnSuccessListener {
+                    onOk (rutaImagen)
                 }
                 println("Foto guardada exitosamente en Firebase Storage.")
             }
-            .addOnFailureListener { exception ->
-                println("Error al guardar la foto en Firebase Storage: $exception")
-            }
     }
-}
+

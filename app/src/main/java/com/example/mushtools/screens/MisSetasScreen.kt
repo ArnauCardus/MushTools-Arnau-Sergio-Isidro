@@ -3,7 +3,6 @@ import android.content.ContentValues
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -14,7 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,15 +25,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.example.mushtools.FireBase.obtenerUrlDeImagen
 import com.example.mushtools.models.Items_MisSetas
-import com.example.mushtools.models.Items_Setas
 import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
 fun MisSetas() {
     val db = FirebaseFirestore.getInstance()
+
     Column(
         modifier = Modifier
             .fillMaxSize(),
@@ -76,21 +74,26 @@ fun MisSetas() {
 }
 @Composable
 fun MisSetaItem(seta: Items_MisSetas) {
+    var imageUrl by remember { mutableStateOf<String?>(null) }
+    obtenerUrlDeImagen(seta.imagen,
+        onSuccess = { imageUrlFromFunction ->
+        imageUrl = imageUrlFromFunction
+    }
+    )
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
     ) {
-        AsyncImage(
-            model = seta.imagen,
-            contentDescription = "Seta",
-            modifier = Modifier
-                .height(200.dp)
-                .fillMaxWidth()
-                .clip(shape = MaterialTheme.shapes.medium)
-        )
-        Spacer(modifier = Modifier.height(16.dp))
+            AsyncImage(
+                model = imageUrl,
+                contentDescription = "Seta",
+                modifier = Modifier
+                    .height(200.dp)
+                    .fillMaxWidth()
+                    .clip(shape = MaterialTheme.shapes.medium)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
             Text(text = "Comentario : " + seta.comentario)
         }
     }
-

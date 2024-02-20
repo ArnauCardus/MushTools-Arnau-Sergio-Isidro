@@ -16,6 +16,7 @@ import com.example.mushtools.screens.Quiz
 fun BancoNavigation(
     navController: NavHostController
 ){
+    var foto = ""
     NavHost(
         navController = navController,
         startDestination = NavScreen.AprenderScreen.name
@@ -24,7 +25,10 @@ fun BancoNavigation(
             Aprender()
         }
         composable(NavScreen.FotosScreen.name){
-            Fotos(navController)
+            Fotos(onOk =  {
+                foto = it
+                navController.navigate(route = NavScreen.AnadirFotoScreen.name) },
+            )
         }
         composable(NavScreen.MapScreen.name){
             Map()
@@ -36,9 +40,10 @@ fun BancoNavigation(
             Quiz()
         }
         composable(NavScreen.AnadirFotoScreen.name){
-            AnadirFoto(navController, ImageURL = "")
+            AnadirFoto(navController, rutaImagen = foto)
         }
     }
 }
+
 
 
