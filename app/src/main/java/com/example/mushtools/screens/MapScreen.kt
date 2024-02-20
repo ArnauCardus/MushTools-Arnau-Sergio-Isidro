@@ -13,9 +13,13 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.LifecycleOwner
 import com.example.mushtools.R
+import com.example.mushtools.models.Restaurantes
+import com.example.mushtools.models.RestaurantesRepository
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.osmdroid.config.Configuration
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
@@ -61,11 +65,22 @@ fun MapViewContainer(
         setMultiTouchControls(true)
     }
 
+
+
     // Bind MapView to the lifecycle
     mapView.controller.setZoom(6.0)
 
-    // Add marker at current location
-    addMarkerAtCurrentLocation(mapView, context)
+    LaunchedEffect(Unit) {
+        // Add marker at current location
+        addMarkerAtCurrentLocation(mapView, context)
+
+        // Get restaurant data from Firestore
+        val restaurantesRepository = RestaurantesRepository()
+        val restaurantesList = restaurantesRepository.getRestaurantes()
+
+        // Add markers for each restaurant
+        addMarkersForRestaurantes(mapView, restaurantesList)
+    }
 
     AndroidView(modifier = modifier, factory = { mapView })
 }
@@ -83,6 +98,19 @@ private fun addMarkerAtCurrentLocation(mapView: MapView, context: Context) {
             marker.position = GeoPoint(currentLocation.latitude, currentLocation.longitude)
             marker.title = "Mi ubicación"
             mapView.overlays.add(marker)
+        }
+    }
+}private suspend fun addMarkersForRestaurantes(mapView: MapView, restaurantesList: List<Restaurantes>) {
+    withContext(Dispatchers.Main) {
+        for (restaurante in restaurantesList) {
+            val latitude = restaurante.latitude.toDoubleOrNull()
+            val longitude = restaurante.longitude.toDoubleOrNull()
+            if (latitude != null && longitude != null) {
+                val marker = Marker(mapView)
+                marker.position = GeoPoint(latitude, longitude)
+                marker.title = restaurante.nombre
+                mapView.overlays.add(marker)
+            }
         }
     }
 }
