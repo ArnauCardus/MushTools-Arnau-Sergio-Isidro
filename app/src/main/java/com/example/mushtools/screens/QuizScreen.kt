@@ -1,6 +1,7 @@
 package com.example.mushtools.screens
 
 import android.content.ContentValues
+import android.os.CountDownTimer
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -46,13 +47,9 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun Quiz(navController: NavController) {
-    // Aquí se mantiene un mapa de preguntas y sus colores de botones seleccionados
-    val selectedAnswersState = remember { mutableMapOf<Items_Setas, Pair<String?, Color?>>() }
     val db = FirebaseFirestore.getInstance()
     var correctAnswersCount by remember { mutableStateOf(0) }
-    var lastSelectedSeta by remember { mutableStateOf<Items_Setas?>(null) }
-    var score by remember { mutableStateOf(Scoreboard(0,""))}
-
+    var score by remember { mutableStateOf(Scoreboard(0, "")) }
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -60,6 +57,7 @@ fun Quiz(navController: NavController) {
         val setasLista by remember { mutableStateOf(mutableListOf<Items_Setas>()) }
         val selectedSeta = remember { mutableStateOf<Items_Setas?>(null) }
         val options = remember { mutableStateListOf<String>() }
+        val selectedButtonStates = remember { mutableStateListOf<Pair<String, Color?>?>(null, null, null) }
 
         LaunchedEffect(Unit) {
             db.collection("Setas").get().addOnSuccessListener { result ->
@@ -109,21 +107,20 @@ fun Quiz(navController: NavController) {
                             seta,
                             options,
                             {
-                                selectedSeta.value = null // Reinicia  seta
-                                correctAnswersCount = 0 // Reinicia respuestas correctas
-                                selectedAnswersState.clear() // Reiniciar el estado de los colores de los botones seleccionados
+                                selectedSeta.value = null
+                                correctAnswersCount = 0
+                                selectedButtonStates.clear()
                             },
                             {
                                 correctAnswersCount++
                             },
                             {
-                                score=score.copy(score=correctAnswersCount)
+                                score = score.copy(score = correctAnswersCount)
                                 GuardarScore(score)
-                                correctAnswersCount = 0 // Reiniciar Respuestas Correctas a 0
+                                correctAnswersCount = 0
                             },
                             correctAnswersCount,
                             onNextQuestion = {
-
                                 selectedSeta.value = setasLista.random()
                                 val correctAnswer = selectedSeta.value!!.nombre
 
@@ -140,17 +137,10 @@ fun Quiz(navController: NavController) {
 
                                 options.shuffle()
 
-                                // Reiniciar el estado del botón seleccionado para la próxima pregunta
-                                selectedAnswersState[selectedSeta.value!!] = null to null
+                                selectedButtonStates.clear()
                             },
-                            // Pasar el estado del botón seleccionado para la pregunta actual
-                            selectedButtonState = selectedAnswersState[seta]
-                        ) { text, color ->
-                            // Actualizar el estado del botón seleccionado
-                            selectedAnswersState[seta] = text to color
-
-                        }
-
+                            selectedButtonStates = selectedButtonStates
+                        )
                     }
                 }
                 FloatingActionButton(onClick = { navController.navigate(route = NavScreen.ScoreboardScreen.name) }) {
@@ -163,6 +153,7 @@ fun Quiz(navController: NavController) {
         }
     }
 }
+
 @Composable
 fun SetaQuizItem(
     seta: Items_Setas,
@@ -172,17 +163,36 @@ fun SetaQuizItem(
     onIncorrectAnswer: () -> Unit,
     correctAnswersCount: Int,
     onNextQuestion: () -> Unit,
-    selectedButtonState: Pair<String?, Color?>?, // Estado del botón seleccionado para la pregunta actual
-    onButtonStateSelected: (String, Color) -> Unit // Callback para actualizar el estado del botón seleccionado
-
+    selectedButtonStates: MutableList<Pair<String, Color?>?>
 ) {
-    var selectedOption by remember { mutableStateOf<String?>(null) }
-    var selectedButtonColor by remember { mutableStateOf<Color?>(null) }
     var imageUrl by remember { mutableStateOf<String?>(null) }
-    obtenerUrlDeImagen(seta.foto,
-        onSuccess = { imageUrlFromFunction ->
-            imageUrl = imageUrlFromFunction
-        })
+    var timeLeft by remember { mutableStateOf(10) }
+    var timer: CountDownTimer? by remember { mutableStateOf(null) }
+
+    // Obtener la URL de la imagen
+    obtenerUrlDeImagen(seta.foto) { imageUrlFromFunction ->
+        imageUrl = imageUrlFromFunction
+    }
+
+    // Reiniciar el temporizador cuando se cambia la pregunta
+    LaunchedEffect(seta) {
+        timer?.cancel() // Detener el temporizador anterior, si existe
+        timeLeft = 10 // Reiniciar el tiempo restante
+
+        timer = object : CountDownTimer((timeLeft * 1000).toLong(), 1000) {
+            override fun onTick(millisUntilFinished: Long) {
+                timeLeft = (millisUntilFinished / 1000).toInt()
+            }
+
+            override fun onFinish() {
+                // Si el tiempo se agota, proceder automáticamente
+                onIncorrectAnswer()
+                onNextQuestion() // Avanzar a la siguiente pregunta
+            }
+        }
+        timer?.start() // Iniciar el temporizador para la nueva pregunta
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -200,22 +210,28 @@ fun SetaQuizItem(
                 .fillMaxWidth()
                 .clip(shape = MaterialTheme.shapes.medium)
         )
-        Spacer(modifier = Modifier.height(16.dp)) // Añadir espacio entre la imagen y las opciones
-        for (option in options) {
+        Spacer(modifier = Modifier.height(16.dp))
+
+        options.forEachIndexed { index, option ->
             Button(
                 onClick = {
                     if (option == seta.nombre) {
                         onCorrectAnswer()
-                        selectedButtonColor = Color.Green
+                        // Asegurarse de que haya suficientes elementos en la lista
+                        while (selectedButtonStates.size <= index) {
+                            selectedButtonStates.add(null)
+                        }
+                        selectedButtonStates[index] = option to Color.Green
                     } else {
                         onIncorrectAnswer()
-                        selectedButtonColor = Color.Red
+                        // Asegurarse de que haya suficientes elementos en la lista
+                        while (selectedButtonStates.size <= index) {
+                            selectedButtonStates.add(null)
+                        }
+                        selectedButtonStates[index] = option to Color.Red
                     }
-                    selectedOption = option // Actualizar la opción seleccionada
-                    onButtonStateSelected(option, selectedButtonColor!!)
                     MainScope().launch {
                         delay(1000) // Esperar 1 segundo
-                        selectedButtonColor = null // Restablecer el color del botón
                         onNextQuestion() // Avanzar a la próxima pregunta después del retraso
                     }
                 },
@@ -223,17 +239,10 @@ fun SetaQuizItem(
                     .fillMaxWidth()
                     .padding(bottom = 8.dp)
                     .background(
-                        color = when {
-                            option == selectedButtonState?.first || option == selectedOption -> selectedButtonColor
-                                ?: Color.Transparent
-
-                            else -> Color.Transparent
-                        }
+                        color = selectedButtonStates.getOrNull(index)?.second ?: Color.Transparent
                     )
-
             ) {
                 Text(text = option)
-
             }
         }
 
@@ -242,7 +251,9 @@ fun SetaQuizItem(
         Text(
             text = "Respuestas correctas: $correctAnswersCount",
         )
-
+        Text(
+            text = "Tiempo restante: $timeLeft segundos",
+        )
     }
 }
 
