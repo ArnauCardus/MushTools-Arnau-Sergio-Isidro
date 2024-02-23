@@ -212,7 +212,7 @@ fun PublicacionItem(publicacion: Publicaciones) {
                         // Agregar el nuevo comentario a la lista de comentarios de la publicación
                         comentarios.add(newComment)
                         // Actualizar Firebase con el nuevo comentario
-                        updateFirebase(publicacion.copy(comentarios = comentarios))
+                        updateFirebase(publicacion.id, comentarios)
                         // Limpiar el campo de texto después de agregar el comentario
                         newComment = ""
                     }
@@ -272,8 +272,6 @@ class LaViewModel {
             }
     }
 
-
-
 }
 
 @Composable
@@ -297,15 +295,19 @@ fun AddPublicacionButton(function: () -> Unit) {
 
 
 
-fun updateFirebase(publicacion: Publicaciones) {
+fun updateFirebase(publicacionId: String, comentarios: List<String>) {
     val db = FirebaseFirestore.getInstance()
-    val documentReference = db.collection("Forum").document(publicacion.id)
+    val collectionReference = db.collection("Forum")
 
-    documentReference.set(publicacion)
-        .addOnSuccessListener {
-            // Éxito al actualizar Firebase
+    // Consultar el documento correcto utilizando el campo id
+    collectionReference.whereEqualTo("id", publicacionId).get()
+        .addOnSuccessListener { documents ->
+            for (document in documents) {
+                // Actualizar los comentarios en Firebase
+                document.reference.update("comentarios", comentarios)
+            }
         }
         .addOnFailureListener { exception ->
-            // Manejar el error
+            // Manejar el error de la consulta
         }
 }
