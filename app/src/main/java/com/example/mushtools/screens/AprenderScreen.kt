@@ -1,6 +1,4 @@
 package com.example.mushtools.screens
-import android.content.ContentValues
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -14,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,33 +24,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.example.mushtools.FireBase.ListarSetas
 import com.example.mushtools.FireBase.obtenerUrlDeImagen
 import com.example.mushtools.models.Items_Setas
-import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
 fun Aprender() {
-    val db = FirebaseFirestore.getInstance()
     Column(
         modifier = Modifier
             .fillMaxSize(),
     ) {
-
-
         val Setaslista = remember { mutableStateListOf<Items_Setas>() }
-
-        db.collection("Setas").get().addOnSuccessListener { result ->
-            for (document in result) {
-                val seta: Items_Setas = document.toObject(Items_Setas::class.java)
-                Setaslista.add(seta)
-                Log.d("Setas", "$seta")
+        ListarSetas(
+            onok = { listSetas ->
+                Setaslista.clear()
+                Setaslista.addAll(listSetas)
             }
-        }
-            .addOnFailureListener { exception ->
-                Log.d(ContentValues.TAG, "Error getting documents: ", exception)
-            }
+        )
 
         // Mostrar las setas en un LazyColumn
         LazyColumn(modifier = Modifier.fillMaxSize()) {
