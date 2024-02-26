@@ -23,6 +23,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -36,9 +37,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.example.mushtools.FireBase.GuardarScore
 import com.example.mushtools.FireBase.obtenerUrlDeImagen
 import com.example.mushtools.models.Items_Setas
-import com.example.mushtools.models.Scoreboard
 import com.example.mushtools.navegation.NavScreen
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.MainScope
@@ -46,45 +47,45 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun Quiz(navController: NavController) {
+fun Quiz(navController: NavController, ) {
     val db = FirebaseFirestore.getInstance()
     var correctAnswersCount by remember { mutableStateOf(0) }
-    var score by remember { mutableStateOf(Scoreboard(0, "")) }
+    var score by remember { mutableStateOf(0) }
+    val setasLista by remember { mutableStateOf(mutableListOf<Items_Setas>()) }
+    val selectedSeta = remember { mutableStateOf<Items_Setas?>(null) }
+    val options = remember { mutableStateListOf<String>() }
+    val selectedButtonStates = remember { mutableStateListOf<Pair<String, Color?>?>(null, null, null) }
 
+    LaunchedEffect(Unit) {
+        db.collection("Setas").get().addOnSuccessListener { result ->
+            for (document in result) {
+                val seta: Items_Setas = document.toObject(Items_Setas::class.java)
+                setasLista.add(seta)
+                Log.d("Setas", "$seta")
+            }
+            selectedSeta.value = setasLista.random()
+            val correctAnswer = selectedSeta.value!!.nombre
+
+            options.clear()
+            options.add(correctAnswer)
+
+            while (options.size < 3) {
+                val randomSeta = setasLista.random().nombre
+
+                if (randomSeta != correctAnswer && randomSeta !in options) {
+                    options.add(randomSeta)
+                }
+            }
+
+            options.shuffle()
+        }.addOnFailureListener { exception ->
+            Log.d(ContentValues.TAG, "Error getting documents: ", exception)
+        }
+    }
     Column(
         modifier = Modifier.fillMaxSize(),
     ) {
-        val setasLista by remember { mutableStateOf(mutableListOf<Items_Setas>()) }
-        val selectedSeta = remember { mutableStateOf<Items_Setas?>(null) }
-        val options = remember { mutableStateListOf<String>() }
-        val selectedButtonStates = remember { mutableStateListOf<Pair<String, Color?>?>(null, null, null) }
 
-        LaunchedEffect(Unit) {
-            db.collection("Setas").get().addOnSuccessListener { result ->
-                for (document in result) {
-                    val seta: Items_Setas = document.toObject(Items_Setas::class.java)
-                    setasLista.add(seta)
-                    Log.d("Setas", "$seta")
-                }
-                selectedSeta.value = setasLista.random()
-                val correctAnswer = selectedSeta.value!!.nombre
-
-                options.clear()
-                options.add(correctAnswer)
-
-                while (options.size < 3) {
-                    val randomSeta = setasLista.random().nombre
-
-                    if (randomSeta != correctAnswer && randomSeta !in options) {
-                        options.add(randomSeta)
-                    }
-                }
-
-                options.shuffle()
-            }.addOnFailureListener { exception ->
-                Log.d(ContentValues.TAG, "Error getting documents: ", exception)
-            }
-        }
 
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             item {
@@ -107,15 +108,10 @@ fun Quiz(navController: NavController) {
                             seta,
                             options,
                             {
-                                selectedSeta.value = null
-                                correctAnswersCount = 0
-                                selectedButtonStates.clear()
-                            },
-                            {
                                 correctAnswersCount++
                             },
                             {
-                                score = score.copy(score = correctAnswersCount)
+                                score = correctAnswersCount
                                 GuardarScore(score)
                                 correctAnswersCount = 0
                             },
@@ -158,7 +154,6 @@ fun Quiz(navController: NavController) {
 fun SetaQuizItem(
     seta: Items_Setas,
     options: List<String>,
-    onPlayAgain: () -> Unit,
     onCorrectAnswer: () -> Unit,
     onIncorrectAnswer: () -> Unit,
     correctAnswersCount: Int,
@@ -173,7 +168,11 @@ fun SetaQuizItem(
     obtenerUrlDeImagen(seta.foto) { imageUrlFromFunction ->
         imageUrl = imageUrlFromFunction
     }
-
+    DisposableEffect(Unit) {
+        onDispose {
+            timer?.cancel() // Cancelar el temporizador cuando se desecha el DisposableEffect
+        }
+    }
     // Reiniciar el temporizador cuando se cambia la pregunta
     LaunchedEffect(seta) {
         timer?.cancel() // Detener el temporizador anterior, si existe
@@ -258,9 +257,4 @@ fun SetaQuizItem(
 }
 
 
-fun GuardarScore (score:Scoreboard){
-    val db = FirebaseFirestore.getInstance()
-    db.collection("Scoreboard")
-        .add(score)
 
-}
