@@ -233,12 +233,19 @@ fun PublicacionItem(publicacion: Publicaciones) {
             Button(
                 onClick = {
                     if (newComment.isNotEmpty()) {
-                        // Agregar el nuevo comentario a la lista de comentarios de la publicación
-                        comentarios.add(newComment)
-                        // Actualizar Firebase con el nuevo comentario
-                        updateFirebase(publicacion.id, comentarios)
-                        // Limpiar el campo de texto después de agregar el comentario
-                        newComment = ""
+
+                        var nombreUsuario: String
+                        obtenerUsuario(
+                            onsuccess = { nombre ->
+                                nombreUsuario = nombre
+                                // Agregar el nuevo comentario a la lista de comentarios de la publicación
+                                comentarios.add("${nombreUsuario} : ${newComment}")
+                                // Actualizar Firebase con el nuevo comentario
+                                updateFirebase(publicacion.id, comentarios)
+                                // Limpiar el campo de texto después de agregar el comentario
+                                newComment = ""
+                              })
+
                     }
                 },
                 modifier = Modifier.align(Alignment.End)
