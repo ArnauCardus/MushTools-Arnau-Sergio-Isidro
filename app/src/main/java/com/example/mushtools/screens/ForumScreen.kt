@@ -1,6 +1,8 @@
 package com.example.mushtools.screens
 
 import android.annotation.SuppressLint
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -14,10 +16,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.example.mushtools.FireBase.obtenerUsuario
 import com.example.mushtools.models.Publicaciones
 import com.google.firebase.firestore.FirebaseFirestore
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.UUID
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -55,14 +61,25 @@ fun Forum() {
         AgregarPublicacionDialog(
             onDismiss = { showDialog.value = false },
             onConfirm = {
-                val nuevaPublicacion = Publicaciones(
-                    id = "", // Dejar que Firebase genere un ID automáticamente
-                    titulo = titulo.value,
-                    contenido = contenido.value,
-                    comentarios = emptyList()
-                )
-                LaViewModel().addPublicacion(nuevaPublicacion)
-                showDialog.value = false
+                val dateTime: String = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                var nombreUsuario: String
+                obtenerUsuario(
+                    onsuccess = { nombre ->
+                        nombreUsuario = nombre
+
+                        val nuevaPublicacion = Publicaciones(
+                            id = "", // Dejar que Firebase genere un ID automáticamente
+                            titulo = titulo.value,
+                            contenido = contenido.value,
+                            comentarios = emptyList(),
+                            nombreUsuario = nombreUsuario,
+                            fecha= dateTime
+                        )
+                        LaViewModel().addPublicacion(nuevaPublicacion)
+                        showDialog.value = false
+                    })
+
+
             },
             titulo = titulo,
             contenido = contenido
@@ -81,7 +98,6 @@ fun AddPublicacionButton(titulo: String, contenido: String, function: () -> Unit
         Text("Agregar Publicación")
     }
 }
-
 
 @Composable
 fun AgregarPublicacionDialog(
@@ -140,8 +156,6 @@ fun AgregarPublicacionDialog(
     }
 }
 
-
-
 @Composable
 fun ForumContent(publicacionesList: List<Publicaciones>) {
     LazyColumn(
@@ -173,12 +187,22 @@ fun PublicacionItem(publicacion: Publicaciones) {
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
+
+            // Mostrar el nombre de usuario y la fecha de publicación
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Publicado por: ${publicacion.nombreUsuario} el ${publicacion.fecha}",
+                style = MaterialTheme.typography.bodyMedium,
+            )
+
             Text(
                 text = publicacion.titulo,
                 style = MaterialTheme.typography.titleLarge // Estilo h1 de Material Design
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(text = publicacion.contenido)
+
+
 
             // Agregar un Divider después del contenido de la publicación
             Divider(modifier = Modifier.padding(vertical = 16.dp))
@@ -209,12 +233,19 @@ fun PublicacionItem(publicacion: Publicaciones) {
             Button(
                 onClick = {
                     if (newComment.isNotEmpty()) {
-                        // Agregar el nuevo comentario a la lista de comentarios de la publicación
-                        comentarios.add(newComment)
-                        // Actualizar Firebase con el nuevo comentario
-                        updateFirebase(publicacion.id, comentarios)
-                        // Limpiar el campo de texto después de agregar el comentario
-                        newComment = ""
+
+                        var nombreUsuario: String
+                        obtenerUsuario(
+                            onsuccess = { nombre ->
+                                nombreUsuario = nombre
+                                // Agregar el nuevo comentario a la lista de comentarios de la publicación
+                                comentarios.add("${nombreUsuario} : ${newComment}")
+                                // Actualizar Firebase con el nuevo comentario
+                                updateFirebase(publicacion.id, comentarios)
+                                // Limpiar el campo de texto después de agregar el comentario
+                                newComment = ""
+                              })
+
                     }
                 },
                 modifier = Modifier.align(Alignment.End)
@@ -225,18 +256,15 @@ fun PublicacionItem(publicacion: Publicaciones) {
     }
 }
 
-
 @Composable
 fun CommentItem(comment: String) {
     Card(
         modifier = Modifier
-
             .fillMaxWidth()
             .padding(bottom = 8.dp)
     ) {
         Column(
             modifier = Modifier.padding(8.dp)
-
         ) {
             Text(text = comment)
         }
@@ -271,29 +299,7 @@ class LaViewModel {
                 // Manejar error
             }
     }
-
 }
-
-@Composable
-fun AddPublicacionButton(function: () -> Unit) {
-    Button(
-        onClick = {
-            // Crear una nueva publicación y agregarla a Firebase
-            val nuevaPublicacion = Publicaciones(
-
-                comentarios = emptyList()
-            )
-            LaViewModel().addPublicacion(nuevaPublicacion)
-        },
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-    ) {
-        Text("Agregar Publicación")
-    }
-}
-
-
 
 fun updateFirebase(publicacionId: String, comentarios: List<String>) {
     val db = FirebaseFirestore.getInstance()
