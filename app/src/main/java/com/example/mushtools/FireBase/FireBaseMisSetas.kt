@@ -3,6 +3,7 @@ package com.example.mushtools.FireBase
 import com.example.mushtools.models.Items_MisSetas
 import com.example.mushtools.models.Items_Setas
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 
 fun GuardarMisSetas(seta: Items_MisSetas){
 
