@@ -1,3 +1,4 @@
+// Archivo: TopBar.kt
 package com.example.mushtools.components
 
 import androidx.compose.material.icons.Icons
@@ -30,5 +31,5 @@ fun TopBar(
                 Icon(Icons.Outlined.Menu,"Abrir Menu")
             }
         }
-        )
+    )
 }

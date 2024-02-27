@@ -1,10 +1,12 @@
 package com.example.mushtools.navegation
 
+
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.mushtools.screens.AnadirFoto
+
 import com.example.mushtools.screens.Aprender
 import com.example.mushtools.screens.Forum
 import com.example.mushtools.screens.Fotos
