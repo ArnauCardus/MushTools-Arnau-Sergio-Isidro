@@ -17,8 +17,8 @@ fun Scoreboard() {
     var ScoreLista by remember { mutableStateOf<List<Scoreboard>>(emptyList()) }
 
     ListarScore(
-        onok = { listSetas ->
-            ScoreLista = listSetas
+        onok = { list ->
+            ScoreLista = list.sortedByDescending {it.score}
         }
     )
 
@@ -32,7 +32,7 @@ fun Scoreboard() {
 fun ScoreboardList(scores: List<Scoreboard>) {
     LazyColumn {
         items(scores) { score ->
-            Text(text = "Username: ${score.userId}, Score: ${score.score}")
+            Text(text = "${score.userId}, Score: ${score.score}")
             // Aquí puedes mostrar más detalles del puntaje si lo deseas
         }
     }

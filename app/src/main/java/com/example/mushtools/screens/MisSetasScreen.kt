@@ -26,8 +26,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.example.mushtools.FireBase.ListarSetas
+import com.example.mushtools.FireBase.listarMisSetas
 import com.example.mushtools.FireBase.obtenerUrlDeImagen
 import com.example.mushtools.models.Items_MisSetas
+import com.example.mushtools.models.Items_Setas
 import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
@@ -38,21 +41,17 @@ fun MisSetas() {
         modifier = Modifier
             .fillMaxSize(),
     ) {
-        val setaslista = remember { mutableStateListOf<Items_MisSetas>() }
-        db.collection("MisSetas").get().addOnSuccessListener { result ->
-            for (document in result) {
-                val seta: Items_MisSetas = document.toObject(Items_MisSetas::class.java)
-                setaslista.add(seta)
-                Log.d("Setas", "$seta")
-            }
-        }
-            .addOnFailureListener { exception ->
-                Log.d(ContentValues.TAG, "Error getting documents: ", exception)
-            }
 
+        val Setaslista = remember { mutableStateListOf<Items_MisSetas>() }
+        listarMisSetas(
+            onok = { list ->
+                Setaslista.clear()
+                Setaslista.addAll(list)
+            }
+        )
         // Mostrar las setas en un LazyColumn
         LazyColumn(modifier = Modifier.fillMaxSize()) {
-            items(setaslista) { seta ->
+            items(Setaslista) { seta ->
                 Box(
                     modifier = Modifier
                         .padding(vertical = 4.dp, horizontal = 5.dp)

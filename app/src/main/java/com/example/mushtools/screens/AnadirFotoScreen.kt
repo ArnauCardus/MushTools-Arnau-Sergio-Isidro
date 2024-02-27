@@ -1,5 +1,7 @@
 package com.example.mushtools.screens
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,6 +17,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.example.mushtools.FireBase.GuardarMisSetas
 import com.example.mushtools.FireBase.obtenerUrlDeImagen
 import com.example.mushtools.models.Items_MisSetas
 import com.example.mushtools.navegation.NavScreen
@@ -22,7 +25,10 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.firebase.firestore.FirebaseFirestore
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun AnadirFoto(navController: NavController, rutaImagen: String) {
@@ -45,11 +51,10 @@ fun AnadirFoto(navController: NavController, rutaImagen: String) {
     } else {
         Text("La localización es necesaria para poder guardar la seta")
     }
-
-    var seta by remember { mutableStateOf(Items_MisSetas(rutaImagen, "", "", "")) }
+    val dateTime: String = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+    var seta by remember { mutableStateOf(Items_MisSetas(rutaImagen, "", dateTime,"","", "")) }
     var comentario by remember { mutableStateOf("") }
     var imageUrl by remember { mutableStateOf<String?>(null) }
-
     obtenerUrlDeImagen(seta.imagen) { imageUrlFromFunction ->
         imageUrl = imageUrlFromFunction
     }
@@ -95,7 +100,7 @@ fun AnadirFoto(navController: NavController, rutaImagen: String) {
                 currentLatitude?.let { lat ->
                     currentLongitude?.let { lon ->
                         seta = seta.copy(latitude = lat.toString(), longitude = lon.toString())
-                        agregarSeta(seta)
+                        GuardarMisSetas(seta)
                         navController.navigate(route = NavScreen.MisSetasScreen.name)
                     }
                 }
@@ -106,19 +111,6 @@ fun AnadirFoto(navController: NavController, rutaImagen: String) {
         }
     }
 }
-
-fun agregarSeta(seta: Items_MisSetas) {
-    val db = FirebaseFirestore.getInstance()
-    db.collection("MisSetas")
-        .add(seta)
-        .addOnSuccessListener { documentReference ->
-            println("Usuario agregado con ID: ${documentReference.id}")
-        }
-        .addOnFailureListener { e ->
-            println("Error al agregar usuario: $e")
-        }
-}
-
 fun obtenerUbicacion(context: android.content.Context): android.location.Location? {
     val locationManager = context.getSystemService(android.content.Context.LOCATION_SERVICE) as android.location.LocationManager?
     if (locationManager != null &&
