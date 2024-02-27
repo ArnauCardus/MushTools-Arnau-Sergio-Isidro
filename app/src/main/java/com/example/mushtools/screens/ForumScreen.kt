@@ -50,7 +50,10 @@ fun Forum() {
             ) {
                 // Nuevo botón para agregar una publicación
                 Spacer(modifier = Modifier.height(32.dp)) // Espacio entre el botón y la lista
-                AddPublicacionButton(titulo.value, contenido.value) { showDialog.value = true }
+                AddPublicacionButton(titulo.value, contenido.value) {
+                    // Antes de mostrar el diálogo, limpiar el estado de los comentarios
+                    showDialog.value = true
+                }
 
                 ForumContent(publicacionList)
             }
@@ -86,6 +89,7 @@ fun Forum() {
         )
     }
 }
+
 
 @Composable
 fun AddPublicacionButton(titulo: String, contenido: String, function: () -> Unit) {
@@ -146,7 +150,9 @@ fun AgregarPublicacionDialog(
                     }
                     Spacer(modifier = Modifier.width(16.dp))
                     Button(
-                        onClick = onConfirm
+                        onClick = {
+                            onConfirm()
+                        }
                     ) {
                         Text("Confirmar")
                     }
@@ -171,8 +177,7 @@ fun ForumContent(publicacionesList: List<Publicaciones>) {
 
 @Composable
 fun PublicacionItem(publicacion: Publicaciones) {
-    var newComment by remember { mutableStateOf("") } // Nuevo comentario ingresado por el usuario
-    val comentarios = remember { mutableStateListOf(*publicacion.comentarios.toTypedArray()) }
+    var newComment by remember { mutableStateOf("") }
 
     Card(
         modifier = Modifier
@@ -182,12 +187,10 @@ fun PublicacionItem(publicacion: Publicaciones) {
                 color = MaterialTheme.colorScheme.inversePrimary,
                 shape = RoundedCornerShape(10.dp)
             )
-
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-
             // Mostrar el nombre de usuario y la fecha de publicación
             Spacer(modifier = Modifier.height(8.dp))
             Text(
@@ -202,20 +205,10 @@ fun PublicacionItem(publicacion: Publicaciones) {
             Spacer(modifier = Modifier.height(16.dp))
             Text(text = publicacion.contenido)
 
-
-
-            // Agregar un Divider después del contenido de la publicación
             Divider(modifier = Modifier.padding(vertical = 16.dp))
 
-            // Título "Comentarios"
-            Text(
-                text = "Comentarios",
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-
-            // Mostrar los comentarios
-            comentarios.forEach { comentario ->
+            // Mostrar los comentarios específicos de esta publicación
+            publicacion.comentarios.forEach { comentario ->
                 CommentItem(comentario)
             }
 
@@ -233,19 +226,15 @@ fun PublicacionItem(publicacion: Publicaciones) {
             Button(
                 onClick = {
                     if (newComment.isNotEmpty()) {
-
-                        var nombreUsuario: String
-                        obtenerUsuario(
-                            onsuccess = { nombre ->
-                                nombreUsuario = nombre
-                                // Agregar el nuevo comentario a la lista de comentarios de la publicación
-                                comentarios.add("${nombreUsuario} : ${newComment}")
-                                // Actualizar Firebase con el nuevo comentario
-                                updateFirebase(publicacion.id, comentarios)
-                                // Limpiar el campo de texto después de agregar el comentario
-                                newComment = ""
-                              })
-
+                        // Agregar el nuevo comentario al estado del compositor
+                        val updatedComments = publicacion.comentarios.toMutableList()
+                        updatedComments.add("${publicacion.nombreUsuario} : $newComment")
+                        // Actualizar los comentarios en Firebase
+                        LaViewModel().updateFirebase(publicacion.id, updatedComments)
+                        // Actualizar el estado de publicacion.comentarios para que la interfaz de usuario se actualice
+                        publicacion.comentarios = updatedComments
+                        // Limpiar el campo de texto después de agregar el comentario
+                        newComment = ""
                     }
                 },
                 modifier = Modifier.align(Alignment.End)
@@ -299,21 +288,21 @@ class LaViewModel {
                 // Manejar error
             }
     }
-}
 
-fun updateFirebase(publicacionId: String, comentarios: List<String>) {
-    val db = FirebaseFirestore.getInstance()
-    val collectionReference = db.collection("Forum")
+    fun updateFirebase(publicacionId: String, comentarios: List<String>) {
+        val db = FirebaseFirestore.getInstance()
+        val collectionReference = db.collection("Forum")
 
-    // Consultar el documento correcto utilizando el campo id
-    collectionReference.whereEqualTo("id", publicacionId).get()
-        .addOnSuccessListener { documents ->
-            for (document in documents) {
-                // Actualizar los comentarios en Firebase
-                document.reference.update("comentarios", comentarios)
+        // Consultar el documento correcto utilizando el campo id
+        collectionReference.whereEqualTo("id", publicacionId).get()
+            .addOnSuccessListener { documents ->
+                for (document in documents) {
+                    // Actualizar los comentarios en Firebase
+                    document.reference.update("comentarios", comentarios)
+                }
             }
-        }
-        .addOnFailureListener { exception ->
-            // Manejar el error de la consulta
-        }
+            .addOnFailureListener { exception ->
+                // Manejar el error de la consulta
+            }
+    }
 }
