@@ -2,10 +2,6 @@ package com.example.mushtools.FireBase
 
 import android.content.ContentValues
 import android.util.Log
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
-import com.example.mushtools.models.Items_MisSetas
 import com.example.mushtools.models.Items_Setas
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -17,6 +13,7 @@ fun ListarSetas(onok: (List<Items_Setas>) -> Unit){
             val seta: Items_Setas = document.toObject(Items_Setas::class.java)
             Setaslista.add(seta)
         }
+        Log.d("FireBaseSetas", "ListarSetas: ${Setaslista.toString()}")
         onok(Setaslista)
     }
         .addOnFailureListener { exception ->

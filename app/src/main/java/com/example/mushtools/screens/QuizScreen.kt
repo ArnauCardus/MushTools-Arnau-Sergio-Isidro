@@ -1,6 +1,5 @@
 package com.example.mushtools.screens
 
-import android.content.ContentValues
 import android.os.CountDownTimer
 import android.util.Log
 import androidx.compose.foundation.background
@@ -38,31 +37,28 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.mushtools.FireBase.GuardarScore
+import com.example.mushtools.FireBase.ListarSetas
 import com.example.mushtools.FireBase.obtenerUrlDeImagen
 import com.example.mushtools.models.Items_Setas
 import com.example.mushtools.navegation.NavScreen
-import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.math.log
 
 @Composable
-fun Quiz(navController: NavController, ) {
-    val db = FirebaseFirestore.getInstance()
+fun Quiz(navController: NavController) {
     var correctAnswersCount by remember { mutableStateOf(0) }
     var score by remember { mutableStateOf(0) }
-    val setasLista by remember { mutableStateOf(mutableListOf<Items_Setas>()) }
     val selectedSeta = remember { mutableStateOf<Items_Setas?>(null) }
     val options = remember { mutableStateListOf<String>() }
     val selectedButtonStates = remember { mutableStateListOf<Pair<String, Color?>?>(null, null, null) }
+    val setasLista = remember { mutableStateListOf<Items_Setas>() }
 
     LaunchedEffect(Unit) {
-        db.collection("Setas").get().addOnSuccessListener { result ->
-            for (document in result) {
-                val seta: Items_Setas = document.toObject(Items_Setas::class.java)
-                setasLista.add(seta)
-                Log.d("Setas", "$seta")
-            }
+        ListarSetas { listSetas ->
+            setasLista.addAll(listSetas)
+            Log.d("QuizScreen", "Quiz: ${setasLista.toString()}")
             selectedSeta.value = setasLista.random()
             val correctAnswer = selectedSeta.value!!.nombre
 
@@ -78,8 +74,6 @@ fun Quiz(navController: NavController, ) {
             }
 
             options.shuffle()
-        }.addOnFailureListener { exception ->
-            Log.d(ContentValues.TAG, "Error getting documents: ", exception)
         }
     }
     Column(
