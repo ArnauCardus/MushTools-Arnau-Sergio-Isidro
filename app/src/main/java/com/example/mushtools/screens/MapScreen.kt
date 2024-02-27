@@ -2,6 +2,7 @@ package com.example.mushtools.screens
 
 import android.Manifest
 import android.content.Context
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
@@ -12,7 +13,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.LifecycleOwner
+import com.example.mushtools.FireBase.listarMisSetas
 import com.example.mushtools.R
+import com.example.mushtools.models.Items_MisSetas
 import com.example.mushtools.models.Restaurantes
 import com.example.mushtools.models.RestaurantesRepository
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -60,34 +63,25 @@ fun MapViewContainer(
         )
     )
 
-
     val mapView = MapView(context).apply {
         setMultiTouchControls(true)
     }
 
-
-
-    // Bind MapView to the lifecycle
     mapView.controller.setZoom(6.0)
 
     LaunchedEffect(Unit) {
-        // Add marker at current location
         addMarkerAtCurrentLocation(mapView, context)
-
-        // Get restaurant data from Firestore
         val restaurantesRepository = RestaurantesRepository()
         val restaurantesList = restaurantesRepository.getRestaurantes()
-
-        // Add markers for each restaurant
         addMarkersForRestaurantes(mapView, restaurantesList)
+        addMarkersForUserSetas( mapView, context)
     }
 
     AndroidView(modifier = modifier, factory = { mapView })
 }
 
-private var currentLatitude: Double? = null
-private var currentLongitude: Double? = null
-
+var currentLatitude: Double? = null
+var currentLongitude: Double? = null
 private fun addMarkerAtCurrentLocation(mapView: MapView, context: Context) {
     val myLocationOverlay = MyLocationNewOverlay(GpsMyLocationProvider(context), mapView)
     myLocationOverlay.enableMyLocation()
@@ -106,6 +100,31 @@ private fun addMarkerAtCurrentLocation(mapView: MapView, context: Context) {
         }
     }
 }
+
+private suspend fun addMarkersForUserSetas(mapView: MapView, context: Context) {
+    // Obtener la lista de setas de manera asincrónica
+    listarMisSetas { misSetasList ->
+        val myLocationOverlay = MyLocationNewOverlay(GpsMyLocationProvider(context), mapView)
+        myLocationOverlay.enableMyLocation()
+        mapView.overlays.add(myLocationOverlay)
+
+        // Add markers for each mushroom associated with the user
+        misSetasList.forEach { seta ->
+            val latitude = seta.latitude.toDoubleOrNull()
+            val longitude = seta.longitude.toDoubleOrNull()
+            if (latitude != null && longitude != null) {
+                val marker = Marker(mapView)
+                marker.position = GeoPoint(latitude, longitude)
+                marker.title = seta.comentario
+                mapView.overlays.add(marker)
+            }
+        }
+    }
+}
+
+
+
+
 
 private suspend fun addMarkersForRestaurantes(mapView: MapView, restaurantesList: List<Restaurantes>) {
     withContext(Dispatchers.Main) {
