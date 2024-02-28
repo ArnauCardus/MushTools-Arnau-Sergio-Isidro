@@ -1,5 +1,7 @@
 package com.example.mushtools.navegation
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -12,6 +14,7 @@ import com.example.mushtools.screens.Map
 import com.example.mushtools.screens.MisSetas
 import com.example.mushtools.screens.Quiz
 import com.example.mushtools.screens.Scoreboard
+import com.example.mushtools.screens.Tiempo
 
 
 @Composable
@@ -50,7 +53,9 @@ fun BancoNavigation(
         composable(NavScreen.AnadirFotoScreen.name){
             AnadirFoto(navController, rutaImagen = foto)
         }
-
+        composable(NavScreen.TiempoScreen.name){
+            Tiempo()
+        }
     }
 }
 

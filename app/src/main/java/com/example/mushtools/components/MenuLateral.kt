@@ -33,6 +33,7 @@ fun MenuLateral(
         Item4,
         Item5,
         Item6,
+        Item7,
     )
     ModalNavigationDrawer(
 

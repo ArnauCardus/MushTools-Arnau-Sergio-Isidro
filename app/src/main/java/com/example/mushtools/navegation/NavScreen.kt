@@ -8,5 +8,6 @@ enum class NavScreen {
     QuizScreen,
     AnadirFotoScreen,
     ForumScreen,
-    ScoreboardScreen
+    ScoreboardScreen,
+    TiempoScreen
 }

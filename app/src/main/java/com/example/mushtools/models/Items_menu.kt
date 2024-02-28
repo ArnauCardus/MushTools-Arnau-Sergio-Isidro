@@ -7,6 +7,7 @@ import androidx.compose.material.icons.outlined.Album
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Forum
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.WbSunny
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.mushtools.navegation.NavScreen
 
@@ -50,6 +51,12 @@ sealed class Items_menu(
         Icons.Outlined.Forum,
         "Forum",
         NavScreen.ForumScreen.name
+
+    )
+    object Item7 : Items_menu(
+        Icons.Outlined.WbSunny,
+        "Tiempo",
+        NavScreen.TiempoScreen.name
 
     )
 }
