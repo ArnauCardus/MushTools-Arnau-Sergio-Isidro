@@ -1,6 +1,7 @@
 package com.example.mushtools.screens
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -24,41 +25,38 @@ import com.example.mushtools.navegation.NavScreen
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
-import com.google.firebase.firestore.FirebaseFirestore
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import kotlin.math.log
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun AnadirFoto(navController: NavController, rutaImagen: String) {
 
+    var currentLatitude by remember { mutableStateOf<Double?>(null) }
+    var currentLongitude by remember { mutableStateOf<Double?>(null) }
     val context = LocalContext.current
     val permissionState = rememberPermissionState(permission = android.Manifest.permission.ACCESS_FINE_LOCATION)
 
     LaunchedEffect(Unit) {
         permissionState.launchPermissionRequest()
     }
-
-    var currentLatitude by remember { mutableStateOf<Double?>(null) }
-    var currentLongitude by remember { mutableStateOf<Double?>(null) }
-
     if (permissionState.status.isGranted) {
-        obtenerUbicacion(context)?.let { location ->
-            currentLatitude = location.latitude
-            currentLongitude = location.longitude
+        Log.d("Merequetenge", "AnadirFoto: Fuera de location ${obtenerUbicacion(context)}")
+        obtenerUbicacion(context)?.let { loc ->
+            currentLatitude = loc.latitude
+            currentLongitude = loc.longitude
+            Log.d("Merequetenge", "AnadirFoto: Dentro de location - Latitud: $currentLatitude, Longitud: $currentLongitude")
         }
-    } else {
-        Text("La localización es necesaria para poder guardar la seta")
     }
     val dateTime: String = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-    var seta by remember { mutableStateOf(Items_MisSetas(rutaImagen, "", dateTime,"","", "")) }
+    var seta by remember { mutableStateOf(Items_MisSetas(rutaImagen, "", dateTime,currentLatitude,currentLongitude, "")) }
     var comentario by remember { mutableStateOf("") }
     var imageUrl by remember { mutableStateOf<String?>(null) }
     obtenerUrlDeImagen(seta.imagen) { imageUrlFromFunction ->
         imageUrl = imageUrlFromFunction
     }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -94,20 +92,15 @@ fun AnadirFoto(navController: NavController, rutaImagen: String) {
                 .padding(10.dp),
             singleLine = true
         )
-
         ElevatedButton(
             onClick = {
-                currentLatitude?.let { lat ->
-                    currentLongitude?.let { lon ->
-                        seta = seta.copy(latitude = lat.toString(), longitude = lon.toString())
+                        Log.d("Maracaton", "AnadirFoto: ${seta.toString()}")
                         GuardarMisSetas(seta)
                         navController.navigate(route = NavScreen.MisSetasScreen.name)
-                    }
-                }
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Guardar ")
+            Text("Guardar")
         }
     }
 }

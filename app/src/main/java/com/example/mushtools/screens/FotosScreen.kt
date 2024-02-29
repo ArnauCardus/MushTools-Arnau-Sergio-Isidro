@@ -34,7 +34,6 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
-import androidx.navigation.NavController
 import com.example.mushtools.navegation.NavScreen
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
@@ -72,9 +71,10 @@ fun Fotos(
                 onClick = {
                     val executor = ContextCompat.getMainExecutor(context)
                     scope.launch {
-                        val fotoUri = takePicture(cameraController, executor)
-                        fotoUri?.let {
-                            guardarFotoEnFirebaseStorage(context, it, onOk = {onOk (it)})
+                        takePicture(cameraController, executor)?.let { fotoUri ->
+                            guardarFotoEnFirebaseStorage(context, fotoUri) { rutaImagen ->
+                                onOk(rutaImagen)
+                            }
                         }
                     }
                 }
@@ -93,24 +93,19 @@ fun Fotos(
 }
 
 private suspend fun takePicture(cameraController: LifecycleCameraController, executor: Executor): Uri? {
-    val file = File.createTempFile("imagentest", ".jpg")
-    val outputDirectory = ImageCapture.OutputFileOptions.Builder(file).build()
-
     return suspendCancellableCoroutine { continuation ->
-        cameraController.takePicture(outputDirectory, executor,
-            object : ImageCapture.OnImageSavedCallback {
-                override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-                    val savedFile = File(outputFileResults.savedUri?.path ?: "")
-                    println("Imagen guardada en: ${savedFile.absolutePath}")
-                    println(outputFileResults.savedUri)
-                    continuation.resume(outputFileResults.savedUri ?:  null)
-                }
+        val outputOptions = ImageCapture.OutputFileOptions.Builder(File.createTempFile("imagentest", ".jpg"))
+            .build()
+        cameraController.takePicture(outputOptions, executor, object : ImageCapture.OnImageSavedCallback {
+            override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
+                continuation.resume(outputFileResults.savedUri ?: null)
+            }
 
-                override fun onError(exception: ImageCaptureException) {
-                    println("Error al capturar la imagen: $exception")
-                    continuation.resume(null,)
-                }
-            })
+            override fun onError(exception: ImageCaptureException) {
+                Log.e("takePicture", "Error al capturar la imagen: $exception")
+                continuation.resume(null)
+            }
+        })
     }
 }
 
@@ -141,13 +136,11 @@ fun guardarFotoEnFirebaseStorage(context: Context, fotoUri: Uri, onOk: (String) 
     val imageRef = storageRef.child(rutaImagen)
     val inputStream = context.contentResolver.openInputStream(fotoUri)
     val bytes = inputStream?.readBytes()
-
     bytes?.let {
         imageRef.putBytes(it)
             .addOnSuccessListener {
-                    onOk (rutaImagen)
-                }
-                println("Foto guardada exitosamente en Firebase Storage.")
+                onOk (rutaImagen)
             }
+        println("Foto guardada exitosamente en Firebase Storage.")
     }
-
+}

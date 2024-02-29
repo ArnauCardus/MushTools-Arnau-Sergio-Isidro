@@ -110,8 +110,8 @@ private suspend fun addMarkersForUserSetas(mapView: MapView, context: Context) {
 
         // Add markers for each mushroom associated with the user
         misSetasList.forEach { seta ->
-            val latitude = seta.latitude.toDoubleOrNull()
-            val longitude = seta.longitude.toDoubleOrNull()
+            val latitude = seta.latitude
+            val longitude = seta.longitude
             if (latitude != null && longitude != null) {
                 val marker = Marker(mapView)
                 marker.position = GeoPoint(latitude, longitude)

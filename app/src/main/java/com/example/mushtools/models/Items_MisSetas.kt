@@ -4,11 +4,11 @@ data class Items_MisSetas(
     val imagen: String,
     val comentario: String,
     val fecha: String,
-    val latitude: String,
-    val longitude: String,
+    val latitude: Double?,
+    val longitude: Double?,
     val usuario: String
 )
 {
     constructor() : this(
-        "", "","","","","")
+        "", "","",null,null,"")
 }

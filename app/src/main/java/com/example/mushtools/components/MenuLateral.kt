@@ -62,7 +62,9 @@ fun MenuLateral(
 
                 }
             }
-        }) {
+        },
+        gesturesEnabled = false
+    ) {
         contenido()
     }
 }
