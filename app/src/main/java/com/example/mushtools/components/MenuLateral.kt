@@ -63,7 +63,7 @@ fun MenuLateral(
                 }
             }
         },
-        gesturesEnabled = false
+        gesturesEnabled = currentRoute(navController) !in listOf(Item4.ruta)
     ) {
         contenido()
     }

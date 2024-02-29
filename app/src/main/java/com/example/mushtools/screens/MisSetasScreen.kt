@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,6 +27,7 @@ import coil.compose.AsyncImage
 import com.example.mushtools.FireBase.listarMisSetas
 import com.example.mushtools.FireBase.obtenerUrlDeImagen
 import com.example.mushtools.models.Items_MisSetas
+import com.example.mushtools.navegation.NavScreen
 
 @Composable
 fun MisSetas() {
@@ -86,5 +88,11 @@ fun MisSetaItem(seta: Items_MisSetas) {
             Spacer(modifier = Modifier.height(16.dp))
             Text(text = "Comentario : " + seta.comentario)
             Text(text = "Fecha : ${seta.fecha}")
+        ElevatedButton(
+            onClick = {},
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Editar")
+        }
         }
     }
