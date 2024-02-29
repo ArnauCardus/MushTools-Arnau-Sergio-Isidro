@@ -47,3 +47,32 @@ fun listarMisSetas(onok: (List<Items_MisSetas>) -> Unit) {
         }
     )
 }
+
+fun editarSeta(seta: Items_MisSetas?) {
+    val db = FirebaseFirestore.getInstance()
+    // Construir una referencia a la colección "MisSetas" y realizar una consulta para obtener el documento que coincida con la fecha y la ruta de imagen
+    db.collection("MisSetas")
+        .whereEqualTo("fecha", seta?.fecha)
+        .whereEqualTo("imagen", seta?.imagen)
+        .get()
+        .addOnSuccessListener { documents ->
+            for (document in documents) {
+                // Actualizar los campos de la seta con los nuevos valores
+                document.reference.update(
+                    "comentario", seta?.comentario,
+                    "latitude", seta?.latitude,
+                    "longitude", seta?.longitude,
+                    "usuario", seta?.usuario
+                )
+                    .addOnSuccessListener {
+                        println("Seta editada exitosamente")
+                    }
+                    .addOnFailureListener { e ->
+                        println("Error al editar la seta: $e")
+                    }
+            }
+        }
+        .addOnFailureListener { e ->
+            println("Error al buscar la seta para editar: $e")
+        }
+}

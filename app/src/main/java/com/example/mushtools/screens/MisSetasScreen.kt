@@ -27,10 +27,12 @@ import coil.compose.AsyncImage
 import com.example.mushtools.FireBase.listarMisSetas
 import com.example.mushtools.FireBase.obtenerUrlDeImagen
 import com.example.mushtools.models.Items_MisSetas
-import com.example.mushtools.navegation.NavScreen
 
 @Composable
-fun MisSetas() {
+fun MisSetas(
+    onEditSeta: (Items_MisSetas) -> Unit,
+    isEditing: (Boolean)-> Unit
+) {
     Column(
         modifier = Modifier.fillMaxSize(),
     ) {
@@ -59,13 +61,13 @@ fun MisSetas() {
                             shape = RoundedCornerShape(8.dp)
                         )
                 )
-                { MisSetaItem(seta)}
+                { MisSetaItem(seta, onEditSeta,isEditing)}
             }
         }
     }
 }
 @Composable
-fun MisSetaItem(seta: Items_MisSetas) {
+fun MisSetaItem(seta: Items_MisSetas, onEditSeta: (Items_MisSetas) -> Unit,isEditing: (Boolean)-> Unit) {
     var imageUrl by remember { mutableStateOf<String?>(null) }
     obtenerUrlDeImagen(seta.imagen,
         onSuccess = { imageUrlFromFunction ->
@@ -89,10 +91,14 @@ fun MisSetaItem(seta: Items_MisSetas) {
             Text(text = "Comentario : " + seta.comentario)
             Text(text = "Fecha : ${seta.fecha}")
         ElevatedButton(
-            onClick = {},
+            onClick = {
+                isEditing(true)
+                onEditSeta(seta)
+                },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Editar")
         }
         }
     }
+
