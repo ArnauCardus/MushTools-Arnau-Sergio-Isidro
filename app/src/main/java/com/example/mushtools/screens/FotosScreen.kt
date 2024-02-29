@@ -9,23 +9,16 @@ import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.view.LifecycleCameraController
 import androidx.camera.view.PreviewView
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.outlined.Menu
-import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -34,12 +27,10 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
-import com.example.mushtools.navegation.NavScreen
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.firebase.storage.FirebaseStorage
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import java.io.File
@@ -51,7 +42,8 @@ import kotlin.coroutines.resume
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun Fotos(
-          onOk: (String) -> Unit,
+    onOk: (String) -> Unit,
+    onEditing: (Boolean) -> Unit
 ){
     val permissionState = rememberPermissionState(permission = Manifest.permission.CAMERA)
     val scope = rememberCoroutineScope()
@@ -73,6 +65,7 @@ fun Fotos(
                     scope.launch {
                         takePicture(cameraController, executor)?.let { fotoUri ->
                             guardarFotoEnFirebaseStorage(context, fotoUri) { rutaImagen ->
+                                onEditing(false)
                                 onOk(rutaImagen)
                             }
                         }
