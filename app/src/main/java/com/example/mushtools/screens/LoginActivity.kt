@@ -1,5 +1,6 @@
 package com.example.mushtools.screens
 
+import android.annotation.SuppressLint
 import android.content.ContentValues.TAG
 import android.content.Intent
 import android.os.Bundle
@@ -58,23 +59,44 @@ class LoginActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    LoginScreen(
-                        onLoginClick = { email, password ->
-                            login(email, password)
-                        },
-                        onRegisterClick = { showRegisterScreen() }
-                    )
+                    var showRegisterScreen by remember { mutableStateOf(false) }
+
+                    if (showRegisterScreen) {
+                        RegisterScreen(
+                            onRegisterClick = { email, password, username ->
+                                register(email, password, username)
+                            },
+                            onLoginClick = { email, password ->
+                                login(email, password)
+                            }
+                        )
+                    } else {
+                        LoginScreen(
+                            onLoginClick = { email, password ->
+                                login(email, password)
+                            },
+                            onRegisterClick = { showRegisterScreen = true }
+                        )
+                    }
                 }
             }
         }
     }
-
+    @SuppressLint("MissingSuperCall")
+    override fun onBackPressed() {
+        // Suprimir el comportamiento predeterminado de onBackPressed
+        // para evitar que la actividad de inicio de sesión retroceda
+        // cuando se presiona el botón "volver atrás".
+        finishAffinity() // Cierra todas las actividades de la aplicación
+    }
     private fun login(email: String, password: String) {
+
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
                     Toast.makeText(this, "Inicio de sesión exitoso", Toast.LENGTH_SHORT).show()
                     val intent = Intent(this, MainActivity::class.java)
+                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                     startActivity(intent)
                     finish() // Cierra la actividad de inicio de sesión
                 } else {
@@ -82,51 +104,6 @@ class LoginActivity : ComponentActivity() {
                 }
             }
     }
-    private fun showRegisterScreen() {
-        setContent {
-            RegisterScreen(
-                onRegisterClick = { email, password, username ->
-                    register(email, password, username)
-                },
-                onLoginClick = { email, password ->
-                    login(email, password)
-                }
-            )
-        }
-    }
-
-    private fun checkEmailExists(email: String, onEmailChecked: (Boolean) -> Unit) {
-        val db = Firebase.firestore
-        db.collection("Usuarios")
-            .whereEqualTo("email", email)
-            .get()
-            .addOnSuccessListener { documents ->
-                // Si hay algún documento con el correo electrónico dado, entonces el correo ya está registrado
-                onEmailChecked(!documents.isEmpty)
-            }
-            .addOnFailureListener { exception ->
-                // Manejar cualquier error que ocurra durante la consulta
-                Log.w(TAG, "Error al comprobar el correo electrónico", exception)
-                onEmailChecked(false) // Por precaución, asumimos que el correo no está registrado
-            }
-    }
-    private fun checkUsernameExists(username: String, onUsernameChecked: (Boolean) -> Unit) {
-        val db = Firebase.firestore
-        db.collection("Usuarios")
-            .whereEqualTo("username", username)
-            .get()
-            .addOnSuccessListener { documents ->
-                // Si hay algún documento con el nombre de usuario dado, entonces el nombre de usuario ya está registrado
-                onUsernameChecked(!documents.isEmpty)
-            }
-            .addOnFailureListener { exception ->
-                // Manejar cualquier error que ocurra durante la consulta
-                Log.w(TAG, "Error al comprobar el nombre de usuario", exception)
-                onUsernameChecked(false) // Por precaución, asumimos que el nombre de usuario no está registrado
-            }
-    }
-
-
 
 
     private fun register(email: String, password: String, username: String) {
@@ -159,14 +136,7 @@ class LoginActivity : ComponentActivity() {
                                         .addOnSuccessListener {
                                             Toast.makeText(this, "Registro exitoso", Toast.LENGTH_SHORT).show()
                                             // Cambiar a la pantalla de inicio de sesión después del registro
-                                            setContent {
-                                                LoginScreen(
-                                                    onLoginClick = { email, password ->
-                                                        login(email, password)
-                                                    },
-                                                    onRegisterClick = { showRegisterScreen() }
-                                                )
-                                            }
+                                            showLoginScreen()
                                         }
                                         .addOnFailureListener {
                                             Toast.makeText(this, "Error al registrar usuario", Toast.LENGTH_SHORT).show()
@@ -181,12 +151,64 @@ class LoginActivity : ComponentActivity() {
         }
     }
 
+    private fun showLoginScreen() {
+        setContent {
+            LoginScreen(
+                onLoginClick = { email, password ->
+                    login(email, password)
+                },
+                onRegisterClick = { showRegisterScreen() }
+            )
+        }
+    }
 
+    private fun showRegisterScreen() {
+        setContent {
+            RegisterScreen(
+                onRegisterClick = { email, password, username ->
+                    register(email, password, username)
+                },
+                onLoginClick = { email, password ->
+                    login(email, password)
+                }
+            )
+        }
+    }
 
+    private fun checkEmailExists(email: String, onEmailChecked: (Boolean) -> Unit) {
+        val db = Firebase.firestore
+        db.collection("Usuarios")
+            .whereEqualTo("email", email)
+            .get()
+            .addOnSuccessListener { documents ->
+                // Si hay algún documento con el correo electrónico dado, entonces el correo ya está registrado
+                onEmailChecked(!documents.isEmpty)
+            }
+            .addOnFailureListener { exception ->
+                // Manejar cualquier error que ocurra durante la consulta
+                Log.w(TAG, "Error al comprobar el correo electrónico", exception)
+                onEmailChecked(false) // Por precaución, asumimos que el correo no está registrado
+            }
+    }
 
+    private fun checkUsernameExists(username: String, onUsernameChecked: (Boolean) -> Unit) {
+        val db = Firebase.firestore
+        db.collection("Usuarios")
+            .whereEqualTo("username", username)
+            .get()
+            .addOnSuccessListener { documents ->
+                // Si hay algún documento con el nombre de usuario dado, entonces el nombre de usuario ya está registrado
+                onUsernameChecked(!documents.isEmpty)
+            }
+            .addOnFailureListener { exception ->
+                // Manejar cualquier error que ocurra durante la consulta
+                Log.w(TAG, "Error al comprobar el nombre de usuario", exception)
+                onUsernameChecked(false) // Por precaución, asumimos que el nombre de usuario no está registrado
+            }
+    }
+}
 
-
-    @Composable
+@Composable
 fun LoginScreen(
     onLoginClick: (String, String) -> Unit,
     onRegisterClick: () -> Unit
@@ -254,85 +276,78 @@ fun LoginScreen(
     }
 }
 
-    @Composable
-    fun RegisterScreen(
-        onRegisterClick: (String, String, String) -> Unit,
-        onLoginClick: (String, String) -> Unit
+@Composable
+fun RegisterScreen(
+    onRegisterClick: (String, String, String) -> Unit,
+    onLoginClick: (String, String) -> Unit
+) {
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var username by remember { mutableStateOf("") } // Agregar esta línea para capturar el nombre de usuario
+
+    Surface(
+        modifier = Modifier.fillMaxSize(),
     ) {
-        var email by remember { mutableStateOf("") }
-        var password by remember { mutableStateOf("") }
-        var username by remember { mutableStateOf("") } // Agregar esta línea para capturar el nombre de usuario
-
-        Surface(
-            modifier = Modifier.fillMaxSize(),
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Image(
-                    imageVector = ImageVector.vectorResource(id = R.drawable.ic_launcher_foreground),
-                    contentDescription = null,
-                    modifier = Modifier.size(120.dp)
-                )
-                Spacer(modifier = Modifier.height(24.dp))
+            Image(
+                imageVector = ImageVector.vectorResource(id = R.drawable.ic_launcher_foreground),
+                contentDescription = null,
+                modifier = Modifier.size(120.dp)
+            )
+            Spacer(modifier = Modifier.height(24.dp))
 
-                TextField(
-                    value = username,
-                    onValueChange = { username = it }, // Capturar el nombre de usuario
-                    label = { Text("Nombre de usuario") },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Text,
-                        imeAction = ImeAction.Done
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                )
+            TextField(
+                value = username,
+                onValueChange = { username = it }, // Capturar el nombre de usuario
+                label = { Text("Nombre de usuario") },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Done
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
 
-                Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-                TextField(
-                    value = email,
-                    onValueChange = { email = it },
-                    label = { Text("Correo electrónico") },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Email,
-                        imeAction = ImeAction.Next
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                )
+            TextField(
+                value = email,
+                onValueChange = { email = it },
+                label = { Text("Correo electrónico") },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Email,
+                    imeAction = ImeAction.Next
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
 
-                Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-                TextField(
-                    value = password,
-                    onValueChange = { password = it },
-                    label = { Text("Contraseña") },
-                    singleLine = true,
-                    visualTransformation = PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Password,
-                        imeAction = ImeAction.Done
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                )
+            TextField(
+                value = password,
+                onValueChange = { password = it },
+                label = { Text("Contraseña") },
+                singleLine = true,
+                visualTransformation = PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Password,
+                    imeAction = ImeAction.Done
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
 
+            Spacer(modifier = Modifier.height(24.dp))
 
-
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Button(onClick = { onRegisterClick(email, password, username) }) {
-                    Text("Registrarse")
-                }
-
-
+            Button(onClick = { onRegisterClick(email, password, username) }) {
+                Text("Registrarse")
             }
         }
     }
 }
-
