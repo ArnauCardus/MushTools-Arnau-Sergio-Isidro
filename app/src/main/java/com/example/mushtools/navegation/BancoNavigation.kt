@@ -1,6 +1,8 @@
 package com.example.mushtools.navegation
 
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -10,11 +12,14 @@ import com.example.mushtools.screens.AnadirFoto
 import com.example.mushtools.screens.Aprender
 import com.example.mushtools.screens.Forum
 import com.example.mushtools.screens.Fotos
+
 import com.example.mushtools.screens.Map
 import com.example.mushtools.screens.MisSetas
 import com.example.mushtools.screens.Quiz
 import com.example.mushtools.screens.Scoreboard
 
+
+@RequiresApi(Build.VERSION_CODES.O)
 
 @Composable
 fun BancoNavigation(

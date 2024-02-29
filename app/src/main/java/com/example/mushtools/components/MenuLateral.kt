@@ -61,7 +61,7 @@ fun MenuLateral(
                 }
             }
         },
-        gesturesEnabled = false // Deshabilitar gestos de deslizamiento
+        gesturesEnabled = false
     ) {
         contenido()
     }

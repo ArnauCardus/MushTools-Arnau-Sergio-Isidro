@@ -82,12 +82,17 @@ class LoginActivity : ComponentActivity() {
             }
         }
     }
+    private fun logout() {
+        auth.signOut()
+        val intent = Intent(this, LoginActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        finish()
+    }
+
     @SuppressLint("MissingSuperCall")
     override fun onBackPressed() {
-        // Suprimir el comportamiento predeterminado de onBackPressed
-        // para evitar que la actividad de inicio de sesión retroceda
-        // cuando se presiona el botón "volver atrás".
-        finishAffinity() // Cierra todas las actividades de la aplicación
+        finishAffinity()
     }
     private fun login(email: String, password: String) {
 
