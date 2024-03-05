@@ -2,7 +2,8 @@ package com.example.mushtools.screens
 
 import android.Manifest
 import android.content.Context
-import android.util.Log
+import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
@@ -12,17 +13,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import com.example.mushtools.FireBase.listarMisSetas
 import com.example.mushtools.R
-import com.example.mushtools.models.Items_MisSetas
 import com.example.mushtools.models.Restaurantes
 import com.example.mushtools.models.RestaurantesRepository
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import org.osmdroid.config.Configuration
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
@@ -71,14 +70,18 @@ fun MapViewContainer(
 
     LaunchedEffect(Unit) {
         addMarkerAtCurrentLocation(mapView, context)
+        addMarkersForUserSetas(mapView, context)
+
         val restaurantesRepository = RestaurantesRepository()
         val restaurantesList = restaurantesRepository.getRestaurantes()
-        addMarkersForRestaurantes(mapView, restaurantesList)
-        addMarkersForUserSetas( mapView, context)
+        addMarkersForRestaurantes(mapView, context, restaurantesList)
     }
 
     AndroidView(modifier = modifier, factory = { mapView })
 }
+
+// Resto del código igual que lo tienes
+
 
 var currentLatitude: Double? = null
 var currentLongitude: Double? = null
@@ -108,26 +111,42 @@ private suspend fun addMarkersForUserSetas(mapView: MapView, context: Context) {
         myLocationOverlay.enableMyLocation()
         mapView.overlays.add(myLocationOverlay)
 
-        // Add markers for each mushroom associated with the user
-        misSetasList.forEach { seta ->
-            val latitude = seta.latitude
-            val longitude = seta.longitude
-            if (latitude != null && longitude != null) {
-                val marker = Marker(mapView)
-                marker.position = GeoPoint(latitude, longitude)
-                marker.title = seta.comentario
-                mapView.overlays.add(marker)
+        // Crear un ícono rojo para las setas y escalarlo
+        val setaDrawable = ContextCompat.getDrawable(context, R.drawable.icono)
+        if (setaDrawable != null) {
+            val setaIcon = BitmapDrawable(context.resources, Bitmap.createScaledBitmap((setaDrawable as BitmapDrawable).bitmap, 50, 50, true))
+            setaIcon.setBounds(0, 0, setaIcon.intrinsicWidth, setaIcon.intrinsicHeight)
+
+            // Add markers for each mushroom associated with the user
+            misSetasList.forEach { seta ->
+                val latitude = seta.latitude
+                val longitude = seta.longitude
+                if (latitude != null && longitude != null) {
+                    val marker = Marker(mapView)
+                    marker.position = GeoPoint(latitude, longitude)
+                    marker.title = seta.comentario
+                    marker.icon = setaIcon
+                    mapView.overlays.add(marker)
+                }
             }
         }
     }
 }
 
+private suspend fun addMarkersForRestaurantes(
+    mapView: MapView,
+    context: Context,
+    restaurantesList: List<Restaurantes>
+) {
+
+    val restaurantesList = RestaurantesRepository().getRestaurantes()
+
+    val restauranteDrawable = ContextCompat.getDrawable(context, R.drawable.restaurante_icono)
+    if (restauranteDrawable != null) {
+        val restauranteIcon = BitmapDrawable(context.resources, Bitmap.createScaledBitmap((restauranteDrawable as BitmapDrawable).bitmap, 50, 50, true))
+        restauranteIcon.setBounds(0, 0, restauranteIcon.intrinsicWidth, restauranteIcon.intrinsicHeight)
 
 
-
-
-private suspend fun addMarkersForRestaurantes(mapView: MapView, restaurantesList: List<Restaurantes>) {
-    withContext(Dispatchers.Main) {
         restaurantesList.forEach { restaurante ->
             val latitude = restaurante.latitude.toDoubleOrNull()
             val longitude = restaurante.longitude.toDoubleOrNull()
@@ -135,9 +154,13 @@ private suspend fun addMarkersForRestaurantes(mapView: MapView, restaurantesList
                 val marker = Marker(mapView)
                 marker.position = GeoPoint(latitude, longitude)
                 marker.title = restaurante.nombre
+                marker.icon = restauranteIcon
                 mapView.overlays.add(marker)
             }
         }
     }
 }
+
+
+
 
