@@ -1,9 +1,7 @@
 package com.example.mushtools.FireBase
 
 import com.example.mushtools.models.Items_MisSetas
-import com.example.mushtools.models.Items_Setas
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Query
 
 fun GuardarMisSetas(seta: Items_MisSetas){
 
@@ -74,5 +72,39 @@ fun editarSeta(seta: Items_MisSetas?) {
         }
         .addOnFailureListener { e ->
             println("Error al buscar la seta para editar: $e")
+        }
+}
+fun eliminarSeta(seta: Items_MisSetas?) {
+    val db = FirebaseFirestore.getInstance()
+    db.collection("MisSetas")
+        .whereEqualTo("fecha", seta?.fecha)
+        .whereEqualTo("imagen", seta?.imagen)
+        .get()
+        .addOnSuccessListener { documents ->
+            for (document in documents) {
+                document.reference.delete()
+                    .addOnSuccessListener {
+                        println("Seta eliminada exitosamente")
+
+                        if (seta != null) {
+                            eliminarFotoStorage(seta,
+                                onSuccess = {
+
+                                    println("Foto eliminada exitosamente de Firebase Storage.")
+                                },
+                                onError = { exception ->
+
+                                    println("Error al eliminar la foto: ${exception.message}")
+                                }
+                            )
+                        }
+                    }
+                    .addOnFailureListener { e ->
+                        println("Error al eliminar la seta: $e")
+                    }
+            }
+        }
+        .addOnFailureListener { e ->
+            println("Error al buscar la seta para eliminar: $e")
         }
 }

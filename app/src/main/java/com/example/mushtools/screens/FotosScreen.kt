@@ -1,7 +1,6 @@
 package com.example.mushtools.screens
 
 import android.Manifest
-import android.content.Context
 import android.net.Uri
 import android.util.Log
 import android.view.ViewGroup
@@ -27,14 +26,13 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
+import com.example.mushtools.FireBase.guardarFotoEnFirebaseStorage
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
-import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import java.io.File
-import java.util.UUID
 import java.util.concurrent.Executor
 import kotlin.coroutines.resume
 
@@ -120,20 +118,4 @@ fun CamaraComposable(
 
         previewView
     })
-}
-fun guardarFotoEnFirebaseStorage(context: Context, fotoUri: Uri, onOk: (String) -> Unit){
-    val storage = FirebaseStorage.getInstance()
-    val storageRef = storage.reference
-    val nombreImagen = "${UUID.randomUUID()}.jpg"
-    val rutaImagen =  "fotos/$nombreImagen"
-    val imageRef = storageRef.child(rutaImagen)
-    val inputStream = context.contentResolver.openInputStream(fotoUri)
-    val bytes = inputStream?.readBytes()
-    bytes?.let {
-        imageRef.putBytes(it)
-            .addOnSuccessListener {
-                onOk (rutaImagen)
-            }
-        println("Foto guardada exitosamente en Firebase Storage.")
-    }
 }
