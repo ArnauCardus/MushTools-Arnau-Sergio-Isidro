@@ -12,7 +12,6 @@ fun obtenerUsuario(onsuccess: (String)->Unit){
         if (result.exists()) {
             val usuario: Usuarios? = result.toObject(Usuarios::class.java)
             if (usuario != null) {
-                Log.d("TAG", "obtenerUsuario: $usuario")
                 onsuccess(usuario.username)
             }
         } else {
@@ -22,3 +21,17 @@ fun obtenerUsuario(onsuccess: (String)->Unit){
         Log.d("TAG", "get failed with ", exception)
     }
 }
+
+    fun obtenerListaUsuarios(onsuccess: (List<String>) -> Unit) {
+        val db = FirebaseFirestore.getInstance()
+        db.collection("Usuarios").get().addOnSuccessListener { result ->
+            val listaUsuarios = mutableListOf<String>()
+            for (document in result) {
+                val usuario = document.toObject(Usuarios::class.java)
+                listaUsuarios.add(usuario.username)
+            }
+            onsuccess(listaUsuarios)
+        }.addOnFailureListener { exception ->
+            Log.d("TAG", "Error getting documents: ", exception)
+        }
+    }

@@ -13,6 +13,7 @@ import com.example.mushtools.screens.Forum
 import com.example.mushtools.screens.Fotos
 import com.example.mushtools.screens.Map
 import com.example.mushtools.screens.MisSetas
+import com.example.mushtools.screens.PostCompartido
 import com.example.mushtools.screens.Quiz
 import com.example.mushtools.screens.Scoreboard
 import com.example.mushtools.screens.Tiempo
@@ -55,12 +56,15 @@ fun BancoNavigation(
                 },
                 isEditing = {
                     isediting = it
-                }
-                ,navController
+                },
+                navController
             )
         }
         composable(NavScreen.QuizScreen.name){
             Quiz(navController)
+        }
+        composable(NavScreen.PostCompartidoScreen.name){
+            PostCompartido(navController)
         }
         composable(NavScreen.ForumScreen.name){
             Forum()
