@@ -46,8 +46,6 @@ fun TopBar(
         }
     )
 }
-private val LocalContext = compositionLocalOf<Context> { error("No Context provided") }
-
 @Composable
 private fun RowScope.LogoutButton(onClick: () -> Unit) {
     val context = LocalContext.current

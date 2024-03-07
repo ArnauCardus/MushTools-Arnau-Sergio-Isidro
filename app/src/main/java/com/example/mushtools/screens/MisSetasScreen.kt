@@ -18,9 +18,17 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AddAPhoto
+import androidx.compose.material.icons.outlined.Dangerous
+import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -34,6 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -44,21 +53,22 @@ import com.example.mushtools.FireBase.guardarPostCompartidos
 import com.example.mushtools.FireBase.listarMisSetas
 import com.example.mushtools.FireBase.obtenerListaUsuarios
 import com.example.mushtools.FireBase.obtenerUrlDeImagen
+import com.example.mushtools.R
 import com.example.mushtools.models.Items_MisSetas
 import com.example.mushtools.navegation.NavScreen
 
 @Composable
 fun MisSetas(
     onEditSeta: (Items_MisSetas) -> Unit,
-    isEditing: (Boolean)-> Unit,
+    isEditing: (Boolean) -> Unit,
     navController: NavController
 ) {
     var setasList by remember { mutableStateOf<List<Items_MisSetas>>(emptyList()) }
     var usernames by remember { mutableStateOf<List<String>>(emptyList()) }
-    Column(
-        modifier = Modifier.fillMaxSize(),
-    ) {
 
+    Column(
+        modifier = Modifier.fillMaxSize()
+    ) {
         obtenerListaUsuarios(
             onsuccess = { list ->
                 usernames = list
@@ -70,7 +80,26 @@ fun MisSetas(
                 setasList = sortedList
             }
         )
-        Log.d("MisSetasScreen", "MisSetas: ${usernames.toString()}")
+        Row (modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End){
+            ElevatedButton(
+                onClick = {navController.navigate(route = NavScreen.MisSetasScreen.name)},
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 8.dp)
+            ) {
+                Text("Mis Setas")
+            }
+            ElevatedButton(
+                onClick = {navController.navigate(route = NavScreen.PostCompartidoScreen.name)},
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 8.dp)
+            ) {
+                Text("Compartidos")
+            }
+
+        }
         // Mostrar las setas en un LazyColumn
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             items(setasList) { seta ->
@@ -87,11 +116,13 @@ fun MisSetas(
                             color = Color.Black,
                             shape = RoundedCornerShape(8.dp)
                         )
-                )
-                { MisSetaItem(usernames,seta, onEditSeta,isEditing,navController)}
+                ) {
+                    MisSetaItem(usernames, seta, onEditSeta, isEditing, navController)
+                }
             }
         }
     }
+
 }
 @Composable
 fun MisSetaItem(users: List<String>,seta: Items_MisSetas, onEditSeta: (Items_MisSetas) -> Unit,isEditing: (Boolean)-> Unit,navController: NavController) {
@@ -244,7 +275,8 @@ fun SearchableList(
                 filteredItems.forEach { item ->
                     Text(
                         text = item,
-                        modifier = Modifier.padding(8.dp)
+                        modifier = Modifier
+                            .padding(8.dp)
                             .clickable {
                                 onUserSelected(item)
                                 selectedItems = if (selectedItems.contains(item)) {

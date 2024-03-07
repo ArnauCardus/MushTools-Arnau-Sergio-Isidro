@@ -9,5 +9,6 @@ enum class NavScreen {
     AnadirFotoScreen,
     ForumScreen,
     ScoreboardScreen,
-    TiempoScreen
+    TiempoScreen,
+    PostCompartidoScreen
 }

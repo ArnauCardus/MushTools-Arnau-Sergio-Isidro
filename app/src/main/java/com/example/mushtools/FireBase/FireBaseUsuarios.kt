@@ -12,7 +12,6 @@ fun obtenerUsuario(onsuccess: (String)->Unit){
         if (result.exists()) {
             val usuario: Usuarios? = result.toObject(Usuarios::class.java)
             if (usuario != null) {
-                Log.d("TAG", "obtenerUsuario: $usuario")
                 onsuccess(usuario.username)
             }
         } else {
