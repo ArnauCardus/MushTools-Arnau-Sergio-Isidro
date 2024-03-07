@@ -1,8 +1,10 @@
 package com.example.mushtools.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,15 +25,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.example.mushtools.FireBase.eliminarSeta
 import com.example.mushtools.FireBase.listarMisSetas
 import com.example.mushtools.FireBase.obtenerUrlDeImagen
 import com.example.mushtools.models.Items_MisSetas
+import com.example.mushtools.navegation.NavScreen
 
 @Composable
 fun MisSetas(
     onEditSeta: (Items_MisSetas) -> Unit,
-    isEditing: (Boolean)-> Unit
+    isEditing: (Boolean)-> Unit,
+    navController: NavController
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -61,13 +67,13 @@ fun MisSetas(
                             shape = RoundedCornerShape(8.dp)
                         )
                 )
-                { MisSetaItem(seta, onEditSeta,isEditing)}
+                { MisSetaItem(navController,seta, onEditSeta,isEditing)}
             }
         }
     }
 }
 @Composable
-fun MisSetaItem(seta: Items_MisSetas, onEditSeta: (Items_MisSetas) -> Unit,isEditing: (Boolean)-> Unit) {
+fun MisSetaItem(navController: NavController, seta: Items_MisSetas, onEditSeta: (Items_MisSetas) -> Unit,isEditing: (Boolean)-> Unit) {
     var imageUrl by remember { mutableStateOf<String?>(null) }
     obtenerUrlDeImagen(seta.imagen,
         onSuccess = { imageUrlFromFunction ->
@@ -90,15 +96,34 @@ fun MisSetaItem(seta: Items_MisSetas, onEditSeta: (Items_MisSetas) -> Unit,isEdi
             Spacer(modifier = Modifier.height(16.dp))
             Text(text = "Comentario : " + seta.comentario)
             Text(text = "Fecha : ${seta.fecha}")
-        ElevatedButton(
-            onClick = {
-                isEditing(true)
-                onEditSeta(seta)
-                },
-            modifier = Modifier.fillMaxWidth()
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End
         ) {
-            Text("Editar")
-        }
+            ElevatedButton(
+                onClick = {
+                    isEditing(true)
+                    onEditSeta(seta)
+                },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 8.dp)
+            ) {
+                Text("Editar")
+            }
+            ElevatedButton(
+                onClick = {
+                    eliminarSeta(seta)
+                    navController.navigate(route = NavScreen.MisSetasScreen.name)
+                },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 8.dp)
+            ) {
+                Text("Eliminar")
+            }
+
         }
     }
+}
 

@@ -36,6 +36,7 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.mushtools.MainActivity
 import com.example.mushtools.R
@@ -84,10 +85,7 @@ class LoginActivity : ComponentActivity() {
     }
     @SuppressLint("MissingSuperCall")
     override fun onBackPressed() {
-        // Suprimir el comportamiento predeterminado de onBackPressed
-        // para evitar que la actividad de inicio de sesión retroceda
-        // cuando se presiona el botón "volver atrás".
-        finishAffinity() // Cierra todas las actividades de la aplicación
+        finishAffinity()
     }
     private fun login(email: String, password: String) {
 
@@ -283,7 +281,8 @@ fun RegisterScreen(
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var username by remember { mutableStateOf("") } // Agregar esta línea para capturar el nombre de usuario
+    var username by remember { mutableStateOf("") }
+    var errorMessage by remember { mutableStateOf("") } // Nuevo estado para mensajes de error
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -302,20 +301,22 @@ fun RegisterScreen(
             )
             Spacer(modifier = Modifier.height(24.dp))
 
+            // Campo de nombre de usuario
             TextField(
                 value = username,
-                onValueChange = { username = it }, // Capturar el nombre de usuario
+                onValueChange = { username = it },
                 label = { Text("Nombre de usuario") },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Text,
-                    imeAction = ImeAction.Done
+                    imeAction = ImeAction.Next
                 ),
                 modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Campo de correo electrónico
             TextField(
                 value = email,
                 onValueChange = { email = it },
@@ -330,6 +331,7 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Campo de contraseña
             TextField(
                 value = password,
                 onValueChange = { password = it },
@@ -345,9 +347,27 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Button(onClick = { onRegisterClick(email, password, username) }) {
+
+            Text(
+                text = errorMessage,
+                color = Color.Red,
+                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                textAlign = TextAlign.Center
+            )
+
+
+            Button(onClick = {
+                if (email.isNotBlank() && password.isNotBlank() && username.isNotBlank()) {
+
+                    onRegisterClick(email, password, username)
+                } else {
+                    // Mostrar mensaje de error si algún campo está vacío
+                    errorMessage = "Por favor, rellena todos los campos"
+                }
+            }) {
                 Text("Registrarse")
             }
         }
     }
 }
+

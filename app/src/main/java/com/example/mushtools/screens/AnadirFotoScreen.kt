@@ -12,7 +12,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -20,6 +26,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.mushtools.FireBase.GuardarMisSetas
 import com.example.mushtools.FireBase.editarSeta
+import com.example.mushtools.FireBase.eliminarFotoStorage
 import com.example.mushtools.FireBase.obtenerUrlDeImagen
 import com.example.mushtools.models.Items_MisSetas
 import com.example.mushtools.navegation.NavScreen
@@ -49,6 +56,8 @@ fun AnadirFoto(navController: NavController,  rutaImagen: String, setaParaEditar
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun CrearSeta(navController: NavController, rutaImagen: String, permissionState: PermissionState) {
+    var seGuardoSeta by remember { mutableStateOf(false) } // Variable para controlar si se guardó la seta
+
     Log.d("Crear Seta", "CrearSeta:$rutaImagen)")
     var currentLatitude by remember { mutableStateOf<Double?>(null) }
     var currentLongitude by remember { mutableStateOf<Double?>(null) }
@@ -67,6 +76,24 @@ fun CrearSeta(navController: NavController, rutaImagen: String, permissionState:
     var imagenUrl: String? by remember { mutableStateOf("") }
     obtenerUrlDeImagen(rutaImagen) { imageUrlFromFunction ->
         imagenUrl = imageUrlFromFunction
+    }
+
+    DisposableEffect(true) {
+        onDispose {
+
+            if (!seGuardoSeta) {
+                eliminarFotoStorage(seta,
+                    onSuccess = {
+
+                        println("Foto eliminada exitosamente de Firebase Storage.")
+                    },
+                    onError = { exception ->
+
+                        println("Error al eliminar la foto: ${exception.message}")
+                    }
+                )
+            }
+        }
     }
 
     Column(
@@ -108,6 +135,7 @@ fun CrearSeta(navController: NavController, rutaImagen: String, permissionState:
             onClick = {
                 Log.d("Info", "AnadirFoto: ${seta.toString()}")
                 GuardarMisSetas(seta)
+                seGuardoSeta = true
                 navController.navigate(route = NavScreen.MisSetasScreen.name)
             },
             modifier = Modifier.fillMaxWidth()
@@ -116,6 +144,7 @@ fun CrearSeta(navController: NavController, rutaImagen: String, permissionState:
         }
     }
 }
+
 
 @Composable
 fun EditarSeta(navController: NavController,setaParaEditar: Items_MisSetas) {
