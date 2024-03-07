@@ -97,26 +97,63 @@ fun eliminarSeta(seta: Items_MisSetas?) {
             println("Error al buscar la seta para eliminar: $e")
         }
 }
-fun guardarPostCompartidos(users: List<String>,seta: Items_MisSetas?){
+fun guardarPostCompartidos(users: List<String>, seta: Items_MisSetas?) {
     val db = FirebaseFirestore.getInstance()
-    var post: PostCompartidos
     db.collection("MisSetas")
         .whereEqualTo("fecha", seta?.fecha)
         .whereEqualTo("imagen", seta?.imagen)
         .get()
         .addOnSuccessListener { documents ->
             for (document in documents) {
-                post =  PostCompartidos(users,document.id.toString())
-                Log.d("FireBase", "guardarPostCompartidos: ${post.toString()} ")
+                val postId = document.id.toString()
+                val post = PostCompartidos(users, postId)
+                Log.d("FireBase", "guardarPostCompartidos: $post")
+
+                // Verificar si ya existe un post con la misma ID
                 db.collection("PostCompartidos")
-                    .add(post)
-                    .addOnSuccessListener { documentReference ->
-                        Log.d("FireBase", "guardarPostCompartidos: Post creado con ID: ${documentReference.id}")
+                    .document(postId)
+                    .get()
+                    .addOnSuccessListener { postDocument ->
+                        if (postDocument.exists()) {
+                            // Si el post ya existe, actualizar la lista de usuarios
+                            val existingUsers = postDocument.toObject(PostCompartidos::class.java)?.users ?: emptyList()
+                            val updatedUsers = (existingUsers + users).distinct()
+                            // Actualizar el documento con la lista de usuarios actualizada
+                            db.collection("PostCompartidos")
+                                .document(postId)
+                                .update("users", updatedUsers)
+                                .addOnSuccessListener {
+                                    Log.d("FireBase", "guardarPostCompartidos: Usuarios actualizados para el post existente")
+                                }
+                                .addOnFailureListener { e ->
+                                    Log.e("FireBase", "guardarPostCompartidos: Error al actualizar usuarios en el post existente", e)
+                                }
+                        } else {
+                            // Si el post no existe, crear uno nuevo
+                            db.collection("PostCompartidos")
+                                .document(postId)
+                                .set(post)
+                                .addOnSuccessListener {
+                                    Log.d("FireBase", "guardarPostCompartidos: Nuevo post creado")
+                                }
+                                .addOnFailureListener { e ->
+                                    Log.e("FireBase", "guardarPostCompartidos: Error al guardar el nuevo post", e)
+                                }
+                        }
                     }
                     .addOnFailureListener { e ->
-                        Log.e("FireBase", "guardarPostCompartidos: Error al guardar el post", e)
+                        Log.e("FireBase", "guardarPostCompartidos: Error al verificar la existencia del post", e)
                     }
-                }
             }
-
+            // Manejar el caso en que no se encontraron documentos
+            if (documents.isEmpty) {
+                Log.d("FireBase", "guardarPostCompartidos: No se encontraron documentos en 'MisSetas' que coincidan")
+                // Aquí puedes realizar alguna acción adicional si es necesario
+            }
+        }
+        .addOnFailureListener { e ->
+            Log.e("FireBase", "guardarPostCompartidos: Error al realizar la consulta en 'MisSetas'", e)
+        }
 }
+
+
