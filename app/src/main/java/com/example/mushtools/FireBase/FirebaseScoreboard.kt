@@ -4,15 +4,20 @@ import android.content.ContentValues
 import android.util.Log
 import com.example.mushtools.models.Scoreboard
 import com.google.firebase.firestore.FirebaseFirestore
+import java.text.SimpleDateFormat
+import java.util.Date
 
 
 fun GuardarScore(score:Int) {
     val db = FirebaseFirestore.getInstance()
+    val currentDate = com.google.firebase.Timestamp(Date())
     var nombreUsuario: String
     obtenerUsuario(
         onsuccess = { nombre ->
             nombreUsuario = nombre
-            var ScoreUser = Scoreboard(score, nombreUsuario)
+            val dateFormat = SimpleDateFormat("dd/MM/yyyy")
+            val formattedDate = dateFormat.format(currentDate.toDate())
+            var ScoreUser = Scoreboard(score, nombreUsuario, formattedDate)
             var ScoreLista: MutableList<Scoreboard>
             ListarScore(
                 onok = { listSetas ->

@@ -13,9 +13,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.example.mushtools.models.Items_menu
-import com.example.mushtools.models.Items_menu.*
-
+import com.example.mushtools.models.Items_menu.Item1
+import com.example.mushtools.models.Items_menu.Item2
+import com.example.mushtools.models.Items_menu.Item3
+import com.example.mushtools.models.Items_menu.Item4
+import com.example.mushtools.models.Items_menu.Item5
+import com.example.mushtools.models.Items_menu.Item6
+import com.example.mushtools.models.Items_menu.Item7
 import com.example.mushtools.navegation.currentRoute
 import kotlinx.coroutines.launch
 
@@ -63,7 +67,7 @@ fun MenuLateral(
                 }
             }
         },
-        gesturesEnabled = currentRoute(navController) !in listOf(Item4.ruta)
+        gesturesEnabled = currentRoute(navController) !in listOf(Item4.ruta,Item7.ruta)
     ) {
         contenido()
     }
