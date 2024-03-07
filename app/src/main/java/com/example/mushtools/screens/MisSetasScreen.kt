@@ -1,49 +1,76 @@
 package com.example.mushtools.screens
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.example.mushtools.FireBase.eliminarSeta
+import com.example.mushtools.FireBase.guardarPostCompartidos
 import com.example.mushtools.FireBase.listarMisSetas
+import com.example.mushtools.FireBase.obtenerListaUsuarios
 import com.example.mushtools.FireBase.obtenerUrlDeImagen
 import com.example.mushtools.models.Items_MisSetas
+import com.example.mushtools.navegation.NavScreen
 
 @Composable
 fun MisSetas(
     onEditSeta: (Items_MisSetas) -> Unit,
-    isEditing: (Boolean)-> Unit
+    isEditing: (Boolean)-> Unit,
+    navController: NavController
 ) {
+    var setasList by remember { mutableStateOf<List<Items_MisSetas>>(emptyList()) }
+    var usernames by remember { mutableStateOf<List<String>>(emptyList()) }
     Column(
         modifier = Modifier.fillMaxSize(),
     ) {
-        var setasList by remember { mutableStateOf<List<Items_MisSetas>>(emptyList()) }
+
+        obtenerListaUsuarios(
+            onsuccess = { list ->
+                usernames = list
+            }
+        )
         listarMisSetas(
             onok = { list ->
                 val sortedList = list.sortedByDescending { it.fecha } // Ordenar por fecha descendente
                 setasList = sortedList
             }
         )
-
+        Log.d("MisSetasScreen", "MisSetas: ${usernames.toString()}")
         // Mostrar las setas en un LazyColumn
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             items(setasList) { seta ->
@@ -61,44 +88,180 @@ fun MisSetas(
                             shape = RoundedCornerShape(8.dp)
                         )
                 )
-                { MisSetaItem(seta, onEditSeta,isEditing)}
+                { MisSetaItem(usernames,seta, onEditSeta,isEditing,navController)}
             }
         }
     }
 }
 @Composable
-fun MisSetaItem(seta: Items_MisSetas, onEditSeta: (Items_MisSetas) -> Unit,isEditing: (Boolean)-> Unit) {
+fun MisSetaItem(users: List<String>,seta: Items_MisSetas, onEditSeta: (Items_MisSetas) -> Unit,isEditing: (Boolean)-> Unit,navController: NavController) {
     var imageUrl by remember { mutableStateOf<String?>(null) }
+    var showDialog by remember { mutableStateOf(false) }
+    var selectedUsers by remember { mutableStateOf(emptyList<String>()) }
     obtenerUrlDeImagen(seta.imagen,
         onSuccess = { imageUrlFromFunction ->
-        imageUrl = imageUrlFromFunction
-    }
+            imageUrl = imageUrlFromFunction
+        }
     )
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
     ) {
-            AsyncImage(
-                model = imageUrl,
-                contentDescription = "Seta",
-                modifier = Modifier
-                    .height(200.dp)
-                    .fillMaxWidth()
-                    .clip(shape = MaterialTheme.shapes.medium)
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(text = "Comentario : " + seta.comentario)
-            Text(text = "Fecha : ${seta.fecha}")
-        ElevatedButton(
-            onClick = {
-                isEditing(true)
-                onEditSeta(seta)
-                },
-            modifier = Modifier.fillMaxWidth()
+        AsyncImage(
+            model = imageUrl,
+            contentDescription = "Seta",
+            modifier = Modifier
+                .height(200.dp)
+                .fillMaxWidth()
+                .clip(shape = MaterialTheme.shapes.medium)
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(text = "Comentario : " + seta.comentario)
+        Text(text = "Fecha : ${seta.fecha}")
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End
         ) {
-            Text("Editar")
-        }
+            ElevatedButton(
+                onClick = {
+                    isEditing(true)
+                    onEditSeta(seta)
+                },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 8.dp)
+            ) {
+                Text("Editar")
+            }
+
+            ElevatedButton(
+                onClick = {
+                    eliminarSeta(seta)
+                    navController.navigate(route = NavScreen.MisSetasScreen.name)
+                },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 8.dp)
+            ) {
+                Text("Eliminar")
+            }
+            ElevatedButton(
+                onClick = { showDialog = true },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 8.dp)
+            ) {
+                Text("Share")
+            }
+            if (showDialog) {
+                AlertDialog(
+                    onDismissRequest = { showDialog = false },
+                    title = {
+                        Text("Buscar Usuario")
+                    },
+                    text = {
+                        SearchableList(users,
+                            onUserSelected = { user ->
+                                selectedUsers = if (selectedUsers.contains(user)) {
+                                    selectedUsers - user
+                                } else {
+                                    selectedUsers + user
+                                }
+                            }
+                        )
+                    },
+                    confirmButton = {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End
+                        ) {
+                            Button(
+                                onClick = {
+                                    guardarPostCompartidos(selectedUsers,seta)
+                                    showDialog = false
+                                }
+                            ) {
+                                Text("Guardar y Salir")
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Button(
+                                onClick = { showDialog = false },
+                            ) {
+                                Text("Cerrar")
+                            }
+                        }
+                    },
+                )
+            }
         }
     }
+}
+@Composable
+fun SearchableList(
+    searchableItems: List<String>,
+    onUserSelected: (String) -> Unit
+) {
+    var searchText by remember { mutableStateOf(TextFieldValue()) }
+    var filteredItems by remember { mutableStateOf(searchableItems) }
+    var selectedItems by remember { mutableStateOf<List<String>>(emptyList()) }
+
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        TextField(
+            value = searchText,
+            onValueChange = {
+                searchText = it
+                filteredItems = filterItems(it.text, searchableItems)
+            },
+            label = { Text("Buscar") },
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(onDone = { /* Perform action on keyboard done event */ }),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        )
+
+        // Mostrar siempre la lista de "selectedItems"
+        Column(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Usuarios seleccionados:")
+            selectedItems.forEach { user ->
+                Text(text = user)
+            }
+        }
+
+        // Mostrar "filteredItems" solo si hay texto en el campo de búsqueda
+        if (searchText.text.isNotEmpty()) {
+            Column(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                filteredItems.forEach { item ->
+                    Text(
+                        text = item,
+                        modifier = Modifier.padding(8.dp)
+                            .clickable {
+                                onUserSelected(item)
+                                selectedItems = if (selectedItems.contains(item)) {
+                                    selectedItems - item
+                                } else {
+                                    selectedItems + item
+                                }
+                            }
+                    )
+                }
+            }
+        }
+    }
+}
+
+
+fun filterItems(query: String, items: List<String>): List<String> {
+    return items.filter { it.contains(query, ignoreCase = true) }
+}
 

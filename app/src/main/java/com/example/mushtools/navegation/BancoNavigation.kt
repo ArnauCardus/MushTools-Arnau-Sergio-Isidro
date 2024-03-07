@@ -55,7 +55,8 @@ fun BancoNavigation(
                 },
                 isEditing = {
                     isediting = it
-                }
+                },
+                navController
             )
         }
         composable(NavScreen.QuizScreen.name){

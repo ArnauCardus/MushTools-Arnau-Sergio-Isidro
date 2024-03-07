@@ -1,9 +1,9 @@
 package com.example.mushtools.FireBase
 
+import android.util.Log
 import com.example.mushtools.models.Items_MisSetas
-import com.example.mushtools.models.Items_Setas
+import com.example.mushtools.models.PostCompartidos
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Query
 
 fun GuardarMisSetas(seta: Items_MisSetas){
 
@@ -50,7 +50,6 @@ fun listarMisSetas(onok: (List<Items_MisSetas>) -> Unit) {
 
 fun editarSeta(seta: Items_MisSetas?) {
     val db = FirebaseFirestore.getInstance()
-    // Construir una referencia a la colección "MisSetas" y realizar una consulta para obtener el documento que coincida con la fecha y la ruta de imagen
     db.collection("MisSetas")
         .whereEqualTo("fecha", seta?.fecha)
         .whereEqualTo("imagen", seta?.imagen)
@@ -75,4 +74,49 @@ fun editarSeta(seta: Items_MisSetas?) {
         .addOnFailureListener { e ->
             println("Error al buscar la seta para editar: $e")
         }
+}
+fun eliminarSeta(seta: Items_MisSetas?) {
+    val db = FirebaseFirestore.getInstance()
+    db.collection("MisSetas")
+        .whereEqualTo("fecha", seta?.fecha)
+        .whereEqualTo("imagen", seta?.imagen)
+        .get()
+        .addOnSuccessListener { documents ->
+            for (document in documents) {
+                // Eliminar el documento
+                document.reference.delete()
+                    .addOnSuccessListener {
+                        println("Seta eliminada exitosamente")
+                    }
+                    .addOnFailureListener { e ->
+                        println("Error al eliminar la seta: $e")
+                    }
+            }
+        }
+        .addOnFailureListener { e ->
+            println("Error al buscar la seta para eliminar: $e")
+        }
+}
+fun guardarPostCompartidos(users: List<String>,seta: Items_MisSetas?){
+    val db = FirebaseFirestore.getInstance()
+    var post: PostCompartidos
+    db.collection("MisSetas")
+        .whereEqualTo("fecha", seta?.fecha)
+        .whereEqualTo("imagen", seta?.imagen)
+        .get()
+        .addOnSuccessListener { documents ->
+            for (document in documents) {
+                post =  PostCompartidos(users,document.id.toString())
+                Log.d("FireBase", "guardarPostCompartidos: ${post.toString()} ")
+                db.collection("PostCompartidos")
+                    .add(post)
+                    .addOnSuccessListener { documentReference ->
+                        Log.d("FireBase", "guardarPostCompartidos: Post creado con ID: ${documentReference.id}")
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e("FireBase", "guardarPostCompartidos: Error al guardar el post", e)
+                    }
+                }
+            }
+
 }
