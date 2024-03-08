@@ -20,8 +20,12 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddAPhoto
+import androidx.compose.material.icons.outlined.AddLocation
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Dangerous
 import androidx.compose.material.icons.outlined.Image
+import androidx.compose.material.icons.outlined.PersonAdd
+import androidx.compose.material.icons.outlined.PersonRemove
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
@@ -49,10 +53,12 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.mushtools.FireBase.eliminarSeta
+import com.example.mushtools.FireBase.eliminarUsuariosCompartidos
 import com.example.mushtools.FireBase.guardarPostCompartidos
 import com.example.mushtools.FireBase.listarMisSetas
 import com.example.mushtools.FireBase.obtenerListaUsuarios
 import com.example.mushtools.FireBase.obtenerUrlDeImagen
+import com.example.mushtools.FireBase.obtenerUsersShared
 import com.example.mushtools.R
 import com.example.mushtools.models.Items_MisSetas
 import com.example.mushtools.navegation.NavScreen
@@ -129,6 +135,10 @@ fun MisSetaItem(users: List<String>,seta: Items_MisSetas, onEditSeta: (Items_Mis
     var imageUrl by remember { mutableStateOf<String?>(null) }
     var showDialog by remember { mutableStateOf(false) }
     var selectedUsers by remember { mutableStateOf(emptyList<String>()) }
+    var sharedUsers by remember { mutableStateOf(emptyList<String>()) }
+    obtenerUsersShared(seta) { listaUsuarios ->
+        sharedUsers = listaUsuarios
+    }
     obtenerUrlDeImagen(seta.imagen,
         onSuccess = { imageUrlFromFunction ->
             imageUrl = imageUrlFromFunction
@@ -193,7 +203,7 @@ fun MisSetaItem(users: List<String>,seta: Items_MisSetas, onEditSeta: (Items_Mis
                         Text("Buscar Usuario")
                     },
                     text = {
-                        SearchableList(users,
+                        SearchableList(sharedUsers,users,
                             onUserSelected = { user ->
                                 selectedUsers = if (selectedUsers.contains(user)) {
                                     selectedUsers - user
@@ -206,21 +216,38 @@ fun MisSetaItem(users: List<String>,seta: Items_MisSetas, onEditSeta: (Items_Mis
                     confirmButton = {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.End
+                            horizontalArrangement = Arrangement.Center
                         ) {
                             Button(
                                 onClick = {
-                                    guardarPostCompartidos(selectedUsers,seta)
-                                    showDialog = false
-                                }
+                                    eliminarUsuariosCompartidos(selectedUsers,seta)
+                                    showDialog = false }
                             ) {
-                                Text("Guardar y Salir")
+                                Icon(
+                                    imageVector = Icons.Outlined.PersonRemove,
+                                    contentDescription = "Eliminar"
+                                )
                             }
                             Spacer(modifier = Modifier.width(8.dp))
                             Button(
-                                onClick = { showDialog = false },
+                                onClick = {
+                                    guardarPostCompartidos(selectedUsers, seta)
+                                    showDialog = false
+                                }
                             ) {
-                                Text("Cerrar")
+                                Icon(
+                                    imageVector = Icons.Outlined.PersonAdd,
+                                    contentDescription = "Agregar"
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Button(
+                                onClick = { showDialog = false }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Close,
+                                    contentDescription = "Cerrar"
+                                )
                             }
                         }
                     },
@@ -231,6 +258,7 @@ fun MisSetaItem(users: List<String>,seta: Items_MisSetas, onEditSeta: (Items_Mis
 }
 @Composable
 fun SearchableList(
+    sharedusers: List<String>,
     searchableItems: List<String>,
     onUserSelected: (String) -> Unit
 ) {
@@ -261,6 +289,10 @@ fun SearchableList(
         Column(
             modifier = Modifier.fillMaxWidth()
         ) {
+            Text("Compartido Con:")
+            sharedusers.forEach { user ->
+                Text(text = user)
+            }
             Text("Usuarios seleccionados:")
             selectedItems.forEach { user ->
                 Text(text = user)

@@ -233,5 +233,77 @@ fun listarPostCompartidos(onok: (List<Items_MisSetas>) -> Unit) {
     }
 }
 
+fun obtenerUsersShared(seta: Items_MisSetas?, onok: (List<String>) -> Unit) {
+    val listaItems = mutableListOf<String>()
+    val db = FirebaseFirestore.getInstance()
+    db.collection("MisSetas")
+        .whereEqualTo("fecha", seta?.fecha)
+        .whereEqualTo("imagen", seta?.imagen)
+        .get()
+        .addOnSuccessListener { documents ->
+            for (document in documents) {
+                val idpost = document.id
+                db.collection("PostCompartidos")
+                    .whereEqualTo("idpost", idpost)
+                    .get()
+                    .addOnSuccessListener { postDocuments ->
+                        for (postDocument in postDocuments) {
+                            val postCompartido = postDocument.toObject(PostCompartidos::class.java)
+                            listaItems.addAll(postCompartido.users)
+                        }
+                        onok(listaItems.distinct())
+                    }
+                    .addOnFailureListener { postException ->
+                        Log.e("FireBase", "Error al obtener documentos de PostCompartidos", postException)
+                        onok(emptyList())
+                    }
+            }
+        }
+        .addOnFailureListener { exception ->
+            Log.e("FireBase", "Error al obtener documentos de MisSetas", exception)
+            onok(emptyList())
+        }
+}
+fun eliminarUsuariosCompartidos(users: List<String>, seta: Items_MisSetas?) {
+    val db = FirebaseFirestore.getInstance()
+    db.collection("MisSetas")
+        .whereEqualTo("fecha", seta?.fecha)
+        .whereEqualTo("imagen", seta?.imagen)
+        .get()
+        .addOnSuccessListener { documents ->
+            for (document in documents) {
+                val postId = document.id.toString()
+
+                // Verificar si existe un post con la ID correspondiente
+                db.collection("PostCompartidos")
+                    .document(postId)
+                    .get()
+                    .addOnSuccessListener { postDocument ->
+                        if (postDocument.exists()) {
+                            val existingUsers = postDocument.toObject(PostCompartidos::class.java)?.users ?: emptyList()
+                            val updatedUsers = existingUsers - users // Eliminar los usuarios seleccionados
+                            // Actualizar el documento con la lista de usuarios actualizada
+                            db.collection("PostCompartidos")
+                                .document(postId)
+                                .update("users", updatedUsers)
+                                .addOnSuccessListener {
+                                    Log.d("FireBase", "eliminarUsuariosCompartidos: Usuarios eliminados del post")
+                                }
+                                .addOnFailureListener { e ->
+                                    Log.e("FireBase", "eliminarUsuariosCompartidos: Error al eliminar usuarios del post", e)
+                                }
+                        } else {
+                            Log.d("FireBase", "eliminarUsuariosCompartidos: No se encontró el post con la ID $postId")
+                        }
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e("FireBase", "eliminarUsuariosCompartidos: Error al verificar la existencia del post", e)
+                    }
+            }
+        }
+        .addOnFailureListener { e ->
+            Log.e("FireBase", "eliminarUsuariosCompartidos: Error al obtener documentos de MisSetas", e)
+        }
+}
 
 
