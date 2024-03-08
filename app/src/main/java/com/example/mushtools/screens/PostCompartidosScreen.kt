@@ -14,7 +14,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.PersonRemove
 import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,6 +31,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.example.mushtools.FireBase.elimnarmedelalista
 import com.example.mushtools.FireBase.listarPostCompartidos
 import com.example.mushtools.FireBase.obtenerUrlDeImagen
 import com.example.mushtools.models.Items_MisSetas
@@ -82,14 +86,14 @@ fun PostCompartido(navController: NavController){
                             shape = RoundedCornerShape(8.dp)
                         )
                 ) {
-                    MisSetaItem(seta)
+                    MisSetaItem(seta,navController)
                 }
             }
         }
     }
 }
 @Composable
-fun MisSetaItem(seta: Items_MisSetas) {
+fun MisSetaItem(seta: Items_MisSetas,navController: NavController) {
     var imageUrl by remember { mutableStateOf<String?>(null) }
     obtenerUrlDeImagen(seta.imagen,
         onSuccess = { imageUrlFromFunction ->
@@ -113,5 +117,23 @@ fun MisSetaItem(seta: Items_MisSetas) {
         Text(text = "Creado por :"+ seta.usuario)
         Text(text = "Comentario : " + seta.comentario)
         Text(text = "Fecha : ${seta.fecha}")
+        Row(
+            horizontalArrangement = Arrangement.End
+        ) {
+            ElevatedButton(
+                onClick = {
+                    elimnarmedelalista(seta)
+                    navController.navigate(route = NavScreen.PostCompartidoScreen.name)
+                },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.PersonRemove,
+                    contentDescription = "Eliminar"
+                )
+            }
+        }
     }
 }

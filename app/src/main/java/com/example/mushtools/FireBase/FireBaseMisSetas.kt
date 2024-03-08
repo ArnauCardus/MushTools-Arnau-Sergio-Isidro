@@ -326,4 +326,44 @@ fun eliminarUsuariosCompartidos(users: List<String>, seta: Items_MisSetas?) {
         }
 }
 
+fun elimnarmedelalista(seta: Items_MisSetas) {
+    obtenerUsuario(
+        onsuccess = { nombreUsuario ->
+            val db = FirebaseFirestore.getInstance()
+            db.collection("MisSetas")
+                .whereEqualTo("fecha", seta?.fecha)
+                .whereEqualTo("imagen", seta?.imagen)
+                .get()
+                .addOnSuccessListener { documents ->
+                    for (document in documents) {
+                        val idpost = document.id
+                        db.collection("PostCompartidos")
+                            .whereEqualTo("idpost", idpost)
+                            .get()
+                            .addOnSuccessListener { postDocuments ->
+                                for (postDocument in postDocuments) {
+                                    val postCompartido = postDocument.toObject(PostCompartidos::class.java)
+                                    val updatedUsers = postCompartido.users - nombreUsuario
+                                    db.collection("PostCompartidos")
+                                        .document(postDocument.id)
+                                        .update("users", updatedUsers)
+                                        .addOnSuccessListener {
+                                            Log.d("FireBase", "Usuario eliminado de la lista en PostCompartidos")
+                                        }
+                                        .addOnFailureListener { e ->
+                                            Log.e("FireBase", "Error al eliminar usuario de la lista en PostCompartidos", e)
+                                        }
+                                }
+                            }
+                            .addOnFailureListener { postException ->
+                                Log.e("FireBase", "Error al obtener documentos de PostCompartidos", postException)
+                            }
+                    }
+                }
+                .addOnFailureListener { exception ->
+                    Log.e("FireBase", "Error al obtener documentos de MisSetas", exception)
+                }
+        }
+    )
+}
 
