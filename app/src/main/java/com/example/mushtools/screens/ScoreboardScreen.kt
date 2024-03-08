@@ -89,7 +89,7 @@ fun FilterButton(
         modifier = modifier
             .padding(horizontal = 8.dp, vertical = 8.dp)
             .height(48.dp) // Ajusta la altura del botón
-            .width(130.dp) // Ajusta el ancho del botón
+            .width(110.dp) // Ajusta el ancho del botón
     ) {
         Text(text = text)
     }
