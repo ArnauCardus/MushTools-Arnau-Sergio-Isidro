@@ -32,6 +32,14 @@ fun Forum() {
     val showDialog = remember { mutableStateOf(false) }
     val titulo = remember { mutableStateOf("") }
     val contenido = remember { mutableStateOf("") }
+    var nombreUsuarioActual by remember { mutableStateOf("") }
+
+    // Obtener nombre de usuario actual
+    obtenerUsuario(
+        onsuccess = { nombre ->
+            nombreUsuarioActual = nombre
+        }
+    )
 
     // Obtener publicaciones desde Firebase
     LaViewModel().getPublicaciones(publicacionList)
@@ -55,7 +63,7 @@ fun Forum() {
                     showDialog.value = true
                 }
 
-                ForumContent(publicacionList)
+                ForumContent(publicacionList, nombreUsuarioActual)
             }
         }
     )
@@ -65,18 +73,15 @@ fun Forum() {
             onDismiss = { showDialog.value = false },
             onConfirm = {
                 val dateTime: String = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-                var nombreUsuario: String
                 obtenerUsuario(
                     onsuccess = { nombre ->
-                        nombreUsuario = nombre
-
                         val nuevaPublicacion = Publicaciones(
                             id = "", // Dejar que Firebase genere un ID automáticamente
                             titulo = titulo.value,
                             contenido = contenido.value,
                             comentarios = emptyList(),
-                            nombreUsuario = nombreUsuario,
-                            fecha= dateTime
+                            nombreUsuario = nombre,
+                            fecha = dateTime
                         )
                         LaViewModel().addPublicacion(nuevaPublicacion)
                         showDialog.value = false
@@ -163,20 +168,20 @@ fun AgregarPublicacionDialog(
 }
 
 @Composable
-fun ForumContent(publicacionesList: List<Publicaciones>) {
+fun ForumContent(publicacionesList: List<Publicaciones>, nombreUsuarioActual: String) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(vertical = 12.dp) // Padding horizontal para la lista
     ) {
         items(publicacionesList) { publicacion ->
-            PublicacionItem(publicacion)
+            PublicacionItem(publicacion, nombreUsuarioActual)
         }
     }
 }
 
 @Composable
-fun PublicacionItem(publicacion: Publicaciones) {
+fun PublicacionItem(publicacion: Publicaciones, nombreUsuarioActual: String) {
     var newComment by remember { mutableStateOf("") }
 
     Card(
@@ -228,7 +233,7 @@ fun PublicacionItem(publicacion: Publicaciones) {
                     if (newComment.isNotEmpty()) {
                         // Agregar el nuevo comentario al estado del compositor
                         val updatedComments = publicacion.comentarios.toMutableList()
-                        updatedComments.add("${publicacion.nombreUsuario} : $newComment")
+                        updatedComments.add("$nombreUsuarioActual: $newComment")
                         // Actualizar los comentarios en Firebase
                         LaViewModel().updateFirebase(publicacion.id, updatedComments)
                         // Actualizar el estado de publicacion.comentarios para que la interfaz de usuario se actualice
