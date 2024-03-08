@@ -3,12 +3,28 @@ package com.example.mushtools.screens
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Brightness3
+import androidx.compose.material.icons.outlined.CalendarToday
+import androidx.compose.material.icons.outlined.Cloud
+import androidx.compose.material.icons.outlined.ModeNight
+import androidx.compose.material.icons.outlined.Navigation
+import androidx.compose.material.icons.outlined.Nightlight
+import androidx.compose.material.icons.outlined.NightsStay
+import androidx.compose.material.icons.outlined.Place
+import androidx.compose.material.icons.outlined.Speed
+import androidx.compose.material.icons.outlined.Thermostat
+import androidx.compose.material.icons.outlined.WaterDrop
+import androidx.compose.material.icons.outlined.WbSunny
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -18,6 +34,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.google.gson.Gson
@@ -529,12 +546,17 @@ import java.net.URL
             }
         }
 
+
         Column(
+
             modifier = Modifier.fillMaxSize()
                 .background(
                     color = MaterialTheme.colorScheme.inversePrimary,
                     shape = RoundedCornerShape(10.dp)
+
                 )
+
+
         ) {
             // Campo de búsqueda
             OutlinedTextField(
@@ -566,7 +588,7 @@ import java.net.URL
                 },
                 modifier = Modifier.padding(16.dp)
             ) {
-                Text("Descargar Datos")
+                Text("Cargar Datos")
             }
 
             if (isLoading) {
@@ -582,58 +604,175 @@ import java.net.URL
                     url = "https://api.tutiempo.net/json/?lan=es&apid=zwDX4azaz4X4Xqs&lid=$lugarNumero"
                 }
                 // Mostrar el nombre del sitio cargado
-                Text(
-                    text = "Sitio: $lugarCargado",
-                    modifier = Modifier.padding(12.dp)
-                )
-                Text(
-                    text = "Fecha: ${dadesLlegits?.day1?.date}",
-                    modifier = Modifier.padding(12.dp)
-                )
-                Text(
-                    text = "Temperatura Máxima: ${dadesLlegits?.day1?.temperatureMax}",
-                    modifier = Modifier.padding(12.dp)
-                )
-                Text(
-                    text = "Temperatura Mínima: ${dadesLlegits?.day1?.temperatureMin}",
-                    modifier = Modifier.padding(12.dp)
-                )
-                Text(
-                    text = "Estado del Tiempo: ${dadesLlegits?.day1?.text}",
-                    modifier = Modifier.padding(12.dp)
-                )
-                Text(
-                    text = "Humedad: ${dadesLlegits?.day1?.humidity}",
-                    modifier = Modifier.padding(12.dp)
-                )
-                Text(
-                    text = "Velocidad del Viento: ${dadesLlegits?.day1?.wind} km/h",
-                    modifier = Modifier.padding(12.dp)
-                )
-                Text(
-                    text = "Dirección del Viento: ${dadesLlegits?.day1?.windDirection}",
-                    modifier = Modifier.padding(12.dp)
-                )
-                Text(
-                    text = "Amanecer: ${dadesLlegits?.day1?.sunrise}",
-                    modifier = Modifier.padding(12.dp)
-                )
-                Text(
-                    text = "Atardecer: ${dadesLlegits?.day1?.sunset}",
-                    modifier = Modifier.padding(12.dp)
-                )
-                Text(
-                    text = "Salida de la Luna: ${dadesLlegits?.day1?.moonrise}",
-                    modifier = Modifier.padding(12.dp)
-                )
-                Text(
-                    text = "Puesta de la Luna: ${dadesLlegits?.day1?.moonset}",
-                    modifier = Modifier.padding(12.dp)
-                )
-                Text(
-                    text = "Fase de la Luna: ${dadesLlegits?.day1?.moonset}",
-                    modifier = Modifier.padding(12.dp)
-                )
+                Row(verticalAlignment = Alignment.CenterVertically,modifier = Modifier.padding(start = 12.dp)) {
+
+                    Icon(
+                        Icons.Outlined.Place,
+                        contentDescription = "Icono",
+                        modifier = Modifier.size(30.dp)
+                    )
+                    Text(
+                        text = "Sitio: $lugarCargado",
+                        modifier = Modifier.padding(start = 12.dp)
+                    )
+                }
+
+                // Fecha
+                Row(verticalAlignment = Alignment.CenterVertically,modifier = Modifier.padding(start = 12.dp)) {
+                    Icon(
+                        Icons.Outlined.CalendarToday,
+                        contentDescription = "Icono",
+                        modifier = Modifier.size(30.dp)
+                    )
+                    Text(
+                        text = "Fecha: ${dadesLlegits?.day1?.date}",
+                        modifier = Modifier.padding(12.dp)
+                    )
+                }
+
+                // Temperatura Máxima
+                Row(verticalAlignment = Alignment.CenterVertically,modifier = Modifier.padding(start = 12.dp)) {
+                    Icon(
+                        Icons.Outlined.Thermostat,
+                        contentDescription = "Icono",
+                        modifier = Modifier.size(30.dp)
+                    )
+                    Text(
+                        text = "Temperatura Máxima: ${dadesLlegits?.day1?.temperatureMax}",
+                        modifier = Modifier.padding(12.dp)
+                    )
+                }
+
+                // Temperatura Mínima
+                Row(verticalAlignment = Alignment.CenterVertically,modifier = Modifier.padding(start = 12.dp)) {
+                    Icon(
+                        Icons.Outlined.Thermostat,
+                        contentDescription = "Icono",
+                        modifier = Modifier.size(30.dp)
+                    )
+                    Text(
+                        text = "Temperatura Mínima: ${dadesLlegits?.day1?.temperatureMin}",
+                        modifier = Modifier.padding(12.dp)
+                    )
+                }
+
+                // Estado del Tiempo
+                Row(verticalAlignment = Alignment.CenterVertically,modifier = Modifier.padding(start = 12.dp)) {
+                    Icon(
+                        Icons.Outlined.Cloud,
+                        contentDescription = "Icono",
+                        modifier = Modifier.size(30.dp)
+                    )
+                    Text(
+                        text = "Estado del Tiempo: ${dadesLlegits?.day1?.text}",
+                        modifier = Modifier.padding(12.dp)
+                    )
+                }
+
+                // Humedad
+                Row(verticalAlignment = Alignment.CenterVertically,modifier = Modifier.padding(start = 12.dp)) {
+                    Icon(
+                        Icons.Outlined.WaterDrop,
+                        contentDescription = "Icono",
+                        modifier = Modifier.size(30.dp)
+                    )
+                    Text(
+                        text = "Humedad: ${dadesLlegits?.day1?.humidity}",
+                        modifier = Modifier.padding(12.dp)
+                    )
+                }
+
+                // Velocidad del Viento
+                Row(verticalAlignment = Alignment.CenterVertically,modifier = Modifier.padding(start = 12.dp)) {
+                    Icon(
+                        Icons.Outlined.Speed,
+                        contentDescription = "Icono",
+                        modifier = Modifier.size(30.dp)
+                    )
+                    Text(
+                        text = "Velocidad del Viento: ${dadesLlegits?.day1?.wind} km/h",
+                        modifier = Modifier.padding(12.dp)
+                    )
+                }
+
+                // Dirección del Viento
+                Row(verticalAlignment = Alignment.CenterVertically,modifier = Modifier.padding(start = 12.dp)) {
+                    Icon(
+                        Icons.Outlined.Navigation,
+                        contentDescription = "Icono",
+                        modifier = Modifier.size(30.dp)
+                    )
+                    Text(
+                        text = "Dirección del Viento: ${dadesLlegits?.day1?.windDirection}",
+                        modifier = Modifier.padding(12.dp)
+                    )
+                }
+
+                // Amanecer
+                Row(verticalAlignment = Alignment.CenterVertically,modifier = Modifier.padding(start = 12.dp)) {
+                    Icon(
+                        Icons.Outlined.WbSunny,
+                        contentDescription = "Icono",
+                        modifier = Modifier.size(30.dp)
+                    )
+                    Text(
+                        text = "Amanecer: ${dadesLlegits?.day1?.sunrise}",
+                        modifier = Modifier.padding(12.dp)
+                    )
+                }
+
+                // Atardecer
+                Row(verticalAlignment = Alignment.CenterVertically,modifier = Modifier.padding(start = 12.dp)) {
+                    Icon(
+                        Icons.Outlined.Brightness3,
+                        contentDescription = "Icono",
+                        modifier = Modifier.size(30.dp)
+                    )
+                    Text(
+                        text = "Atardecer: ${dadesLlegits?.day1?.sunset}",
+                        modifier = Modifier.padding(12.dp)
+                    )
+                }
+
+                // Salida de la Luna
+                Row(verticalAlignment = Alignment.CenterVertically,modifier = Modifier.padding(start = 12.dp)) {
+                    Icon(
+                        Icons.Outlined.Nightlight,
+                        contentDescription = "Icono",
+                        modifier = Modifier.size(30.dp)
+                    )
+                    Text(
+                        text = "Salida de la Luna: ${dadesLlegits?.day1?.moonrise}",
+                        modifier = Modifier.padding(12.dp)
+                    )
+                }
+
+                // Puesta de la Luna
+                Row(verticalAlignment = Alignment.CenterVertically,modifier = Modifier.padding(start = 12.dp)) {
+                    Icon(
+                        Icons.Outlined.NightsStay,
+                        contentDescription = "Icono",
+                        modifier = Modifier.size(30.dp)
+                    )
+                    Text(
+                        text = "Puesta de la Luna: ${dadesLlegits?.day1?.moonset}",
+                        modifier = Modifier.padding(12.dp)
+                    )
+                }
+
+                // Fase de la Luna
+                Row(verticalAlignment = Alignment.CenterVertically,modifier = Modifier.padding(start = 12.dp)) {
+                    Icon(
+                        Icons.Outlined.ModeNight,
+                        contentDescription = "Icono",
+                        modifier = Modifier.size(30.dp)
+                    )
+                    Text(
+                        text = "Fase de la Luna: ${dadesLlegits?.day1?.moonset}",
+                        modifier = Modifier.padding(12.dp)
+                    )
+                }
+
             }
         }
     }
