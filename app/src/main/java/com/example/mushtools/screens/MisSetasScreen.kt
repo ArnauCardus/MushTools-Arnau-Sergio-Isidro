@@ -221,6 +221,7 @@ fun MisSetaItem(users: List<String>,seta: Items_MisSetas, onEditSeta: (Items_Mis
                             Button(
                                 onClick = {
                                     eliminarUsuariosCompartidos(selectedUsers,seta)
+                                    selectedUsers = emptyList()
                                     showDialog = false }
                             ) {
                                 Icon(
@@ -232,6 +233,7 @@ fun MisSetaItem(users: List<String>,seta: Items_MisSetas, onEditSeta: (Items_Mis
                             Button(
                                 onClick = {
                                     guardarPostCompartidos(selectedUsers, seta)
+                                    selectedUsers = emptyList()
                                     showDialog = false
                                 }
                             ) {
