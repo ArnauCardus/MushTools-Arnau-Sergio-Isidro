@@ -58,13 +58,16 @@ fun Scoreboard() {
         .fillMaxSize()
         .background(MaterialTheme.colorScheme.inversePrimary)
     ) {
-        Row {
-            Spacer(modifier = Modifier.width(36.dp))
+        Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
+            //Spacer(modifier = Modifier.width(36.dp))
             FilterButton(text = "Por Día", onClick = { filterType = FilterType.DAY })
-            Spacer(modifier = Modifier.width(16.dp))
+
+           // Spacer(modifier = Modifier.width(16.dp))
             FilterButton(text = "Por Mes", onClick = { filterType = FilterType.MONTH })
-            Spacer(modifier = Modifier.width(16.dp))
-            FilterButton(text = "Por Año", onClick = { filterType = FilterType.YEAR })
+
+           // Spacer(modifier = Modifier.width(16.dp))
+            FilterButton(text = " Por Año ", onClick = { filterType = FilterType.YEAR })
+
         }
         Text(
             text = "Lista de Puntuaciones ",
@@ -76,8 +79,18 @@ fun Scoreboard() {
 }
 
 @Composable
-fun FilterButton(text: String, onClick: () -> Unit) {
-    Button(onClick = onClick) {
+fun FilterButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Button(
+        onClick = onClick,
+        modifier = modifier
+            .padding(horizontal = 8.dp, vertical = 8.dp)
+            .height(48.dp) // Ajusta la altura del botón
+            .width(130.dp) // Ajusta el ancho del botón
+    ) {
         Text(text = text)
     }
 }

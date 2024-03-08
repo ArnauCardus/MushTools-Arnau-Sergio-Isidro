@@ -4,6 +4,7 @@ import android.os.CountDownTimer
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -29,7 +30,6 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -44,7 +44,6 @@ import com.example.mushtools.navegation.NavScreen
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlin.math.log
 
 @Composable
 fun Quiz(navController: NavController) {
@@ -134,7 +133,7 @@ fun Quiz(navController: NavController) {
                     }
                 }
                 FloatingActionButton(onClick = { navController.navigate(route = NavScreen.ScoreboardScreen.name) }) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
                         Icon(Icons.Filled.Scoreboard, "Scoreboard" )
                         Text(text = " Scoreboard")
                     }
@@ -204,30 +203,38 @@ fun SetaQuizItem(
                 .clip(shape = MaterialTheme.shapes.medium)
         )
         Spacer(modifier = Modifier.height(16.dp))
+        var buttonEnabled by remember { mutableStateOf(true) }
 
         options.forEachIndexed { index, option ->
             Button(
                 onClick = {
-                    if (option == seta.nombre) {
-                        onCorrectAnswer()
-                        // Asegurarse de que haya suficientes elementos en la lista
-                        while (selectedButtonStates.size <= index) {
-                            selectedButtonStates.add(null)
+                    if (buttonEnabled) {
+                        buttonEnabled = false // Deshabilitar los botones después de seleccionar una respuesta
+
+                        if (option == seta.nombre) {
+                            onCorrectAnswer()
+                            // Asegurarse de que haya suficientes elementos en la lista
+                            while (selectedButtonStates.size <= index) {
+                                selectedButtonStates.add(null)
+                            }
+                            selectedButtonStates[index] = option to Color.Green
+                        } else {
+                            onIncorrectAnswer()
+                            // Asegurarse de que haya suficientes elementos en la lista
+                            while (selectedButtonStates.size <= index) {
+                                selectedButtonStates.add(null)
+                            }
+                            selectedButtonStates[index] = option to Color.Red
                         }
-                        selectedButtonStates[index] = option to Color.Green
-                    } else {
-                        onIncorrectAnswer()
-                        // Asegurarse de que haya suficientes elementos en la lista
-                        while (selectedButtonStates.size <= index) {
-                            selectedButtonStates.add(null)
+                        MainScope().launch {
+                            delay(1000) // Esperar 1 segundo
+                            onNextQuestion() // Avanzar a la próxima pregunta después del retraso
+                            buttonEnabled = true // Habilitar los botones para la siguiente pregunta
                         }
-                        selectedButtonStates[index] = option to Color.Red
-                    }
-                    MainScope().launch {
-                        delay(1000) // Esperar 1 segundo
-                        onNextQuestion() // Avanzar a la próxima pregunta después del retraso
                     }
                 },
+                // Deshabilitar el botón si no está habilitado
+                enabled = buttonEnabled,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 8.dp)
@@ -239,6 +246,7 @@ fun SetaQuizItem(
             }
         }
 
+
         Spacer(modifier = Modifier.height(16.dp))
         Spacer(modifier = Modifier.height(8.dp))
         Text(
@@ -249,6 +257,3 @@ fun SetaQuizItem(
         )
     }
 }
-
-
-
