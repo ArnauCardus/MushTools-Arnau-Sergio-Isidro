@@ -16,6 +16,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import com.example.mushtools.FireBase.listarMisSetas
+import com.example.mushtools.FireBase.listarPostCompartidos
 import com.example.mushtools.R
 import com.example.mushtools.models.Restaurantes
 import com.example.mushtools.models.RestaurantesRepository
@@ -71,7 +72,7 @@ fun MapViewContainer(
     LaunchedEffect(Unit) {
         addMarkerAtCurrentLocation(mapView, context)
         addMarkersForUserSetas(mapView, context)
-
+        marcadorPostCompartidos(mapView,context)
         val restaurantesRepository = RestaurantesRepository()
         val restaurantesList = restaurantesRepository.getRestaurantes()
         addMarkersForRestaurantes(mapView, context, restaurantesList)
@@ -104,7 +105,7 @@ private fun addMarkerAtCurrentLocation(mapView: MapView, context: Context) {
     }
 }
 
-private suspend fun addMarkersForUserSetas(mapView: MapView, context: Context) {
+private  fun addMarkersForUserSetas(mapView: MapView, context: Context) {
     // Obtener la lista de setas de manera asincrónica
     listarMisSetas { misSetasList ->
         val myLocationOverlay = MyLocationNewOverlay(GpsMyLocationProvider(context), mapView)
@@ -126,6 +127,34 @@ private suspend fun addMarkersForUserSetas(mapView: MapView, context: Context) {
                     marker.position = GeoPoint(latitude, longitude)
                     marker.title = seta.comentario
                     marker.icon = setaIcon
+                    mapView.overlays.add(marker)
+                }
+            }
+        }
+    }
+}
+private  fun marcadorPostCompartidos(mapView: MapView, context: Context) {
+    // Obtener la lista de setas de manera asincrónica
+    listarPostCompartidos { misSetasList ->
+        val myLocationOverlay = MyLocationNewOverlay(GpsMyLocationProvider(context), mapView)
+        myLocationOverlay.enableMyLocation()
+        mapView.overlays.add(myLocationOverlay)
+
+        // Crear un ícono rojo para las setas y escalarlo
+        val setaDrawable = ContextCompat.getDrawable(context, R.drawable.compartidos)
+        if (setaDrawable != null) {
+            val setaCompartidos = BitmapDrawable(context.resources, Bitmap.createScaledBitmap((setaDrawable as BitmapDrawable).bitmap, 50, 50, true))
+            setaCompartidos.setBounds(0, 0, setaCompartidos.intrinsicWidth, setaCompartidos.intrinsicHeight)
+
+            // Add markers for each mushroom associated with the user
+            misSetasList.forEach { seta ->
+                val latitude = seta.latitude
+                val longitude = seta.longitude
+                if (latitude != null && longitude != null) {
+                    val marker = Marker(mapView)
+                    marker.position = GeoPoint(latitude, longitude)
+                    marker.title = seta.comentario
+                    marker.icon = setaCompartidos
                     mapView.overlays.add(marker)
                 }
             }
