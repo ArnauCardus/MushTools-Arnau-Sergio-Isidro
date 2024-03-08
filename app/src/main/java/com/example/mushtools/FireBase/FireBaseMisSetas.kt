@@ -3,10 +3,7 @@ package com.example.mushtools.FireBase
 import android.util.Log
 import com.example.mushtools.models.Items_MisSetas
 import com.example.mushtools.models.PostCompartidos
-import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.toObject
-import kotlin.math.log
 
 fun GuardarMisSetas(seta: Items_MisSetas){
 
@@ -81,24 +78,28 @@ fun editarSeta(seta: Items_MisSetas?) {
 }
 fun eliminarSeta(seta: Items_MisSetas?) {
     val db = FirebaseFirestore.getInstance()
+
     db.collection("MisSetas")
         .whereEqualTo("fecha", seta?.fecha)
         .whereEqualTo("imagen", seta?.imagen)
         .get()
         .addOnSuccessListener { documents ->
             for (document in documents) {
+                val setaId = document.id
+                Log.d("IdSeta", "idSeta ${setaId.toString()}") // Log the ID for debugging
+
                 document.reference.delete()
                     .addOnSuccessListener {
                         println("Seta eliminada exitosamente")
 
+                        deletePost(db, setaId)
+
                         if (seta != null) {
                             eliminarFotoStorage(seta,
                                 onSuccess = {
-
                                     println("Foto eliminada exitosamente de Firebase Storage.")
                                 },
                                 onError = { exception ->
-
                                     println("Error al eliminar la foto: ${exception.message}")
                                 }
                             )
@@ -112,7 +113,26 @@ fun eliminarSeta(seta: Items_MisSetas?) {
         .addOnFailureListener { e ->
             println("Error al buscar la seta para eliminar: $e")
         }
+
+
+
 }
+fun deletePost(db: FirebaseFirestore, setaId: String) {
+    // Eliminar el post
+    db.collection("PostCompartidos")
+        .whereEqualTo("idpost", setaId)
+        .get()
+        .addOnSuccessListener { postDocuments ->
+            for (postDocument in postDocuments) {
+                postDocument.reference.delete()
+            }
+        }
+        .addOnFailureListener { e ->
+            // Manejar el error
+            println("Error al eliminar el post: $e")
+        }
+}
+
 
 fun guardarPostCompartidos(users: List<String>, seta: Items_MisSetas?) {
     val db = FirebaseFirestore.getInstance()
