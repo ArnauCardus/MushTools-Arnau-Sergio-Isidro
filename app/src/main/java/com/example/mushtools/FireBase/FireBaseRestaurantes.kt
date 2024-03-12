@@ -1,4 +1,8 @@
-package com.example.mushtools.models
+package com.example.mushtools.FireBase
+
+import com.example.mushtools.models.Restaurantes
+
+
 
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await

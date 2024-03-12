@@ -15,11 +15,11 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
+import com.example.mushtools.FireBase.RestaurantesRepository
 import com.example.mushtools.FireBase.listarMisSetas
 import com.example.mushtools.FireBase.listarPostCompartidos
 import com.example.mushtools.R
 import com.example.mushtools.models.Restaurantes
-import com.example.mushtools.models.RestaurantesRepository
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
