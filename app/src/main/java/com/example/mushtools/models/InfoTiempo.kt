@@ -1,4 +1,5 @@
-package com.example.mushtools.screens
+package com.example.mushtools.models
+
 
 import com.google.gson.annotations.SerializedName
 
